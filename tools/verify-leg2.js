@@ -3,7 +3,12 @@ const md = fs.readFileSync('canvases/holmgard-01-the-crossing/CANVAS.md', 'utf8'
 const m = md.match(/<script>([\s\S]*?)<\/script>/);
 if (!m) { console.error('no script'); process.exit(1); }
 global.document = { getElementById: () => ({ set innerHTML(v){}, get innerHTML(){return '';}, value:'' }) };
-global.localStorage = { setItem(){}, getItem(){return null;}, removeItem(){} };
+const memStore = {};
+global.localStorage = {
+  setItem(k, v) { memStore[k] = String(v); },
+  getItem(k) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; },
+  removeItem(k) { delete memStore[k]; }
+};
 global.window = global; global.scrollTo = () => {}; global.fetch = () => Promise.reject(new Error('offline'));
 (0, eval)(m[1]);
 const g = global;
@@ -27,6 +32,12 @@ while (g.S.phase !== 'end' && steps++ < 300) {
 }
 ok(g.S.result.how === 'arrived' && g.S.result.dest === 'Aldeigjuborg', 'leg 1 ends at Aldeigjuborg (dest tag)');
 ok(g.S.leg === 1, 'leg is 1 at landing');
+// per-leg scoreboard: the end screen saves itself, no form, tagged Aldeigjuborg
+g.render();   // the end screen renders in play; in the stub this triggers the auto-save
+ok(g.S.scoreSaved === true, 'leg 1 end auto-saves to the board');
+let b1 = g.boardGet();
+ok(b1.length === 1 && b1[0].g === 'Aldeigjuborg' && b1[0].s > 0, 'board holds the Aldeigjuborg leg score (' + (b1[0] && b1[0].s) + ')');
+ok(typeof g.S.name === 'string' && g.S.name.length > 0, 'skipper name set at run start (no end-screen form)');
 const purse1 = g.S.silver;
 
 // continue into the hub
@@ -89,6 +100,11 @@ ok(m[1].indexOf('dirhams') > 0, 'dirhams present in UI strings');
 // placeholders render
 try { g.sceneSVG('lowwater'); g.sceneSVG('portage'); ok(true, 'sceneSVG renders lowwater & portage (placeholder art)'); }
 catch (e) { ok(false, 'sceneSVG renders lowwater & portage: ' + e.message); }
+
+// per-leg scoreboard: the Holmgard leg adds its own entry
+g.render();
+const b2 = g.boardGet();
+ok(b2.length === 2 && b2.some(e => e.g === 'Holmgard') && b2.some(e => e.g === 'Aldeigjuborg'), 'board holds both legs\u2019 scores, tagged by destination');
 
 // state resets cleanly
 g.newGame(777); g.board();

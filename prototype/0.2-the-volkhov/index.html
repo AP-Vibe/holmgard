@@ -80,6 +80,10 @@
   .terms span { color: var(--mut); }
   .center { text-align: center; }
   .mut { color: var(--mut); }
+  button span.mut { white-space: nowrap; font-size: 13px; }
+  .holdbar { height: 8px; border-radius: 4px; background: #2a3644; margin: 8px 0 2px; }
+  .holdbar i { display: block; height: 8px; border-radius: 4px; background: var(--amber); }
+  .loadrow b { color: var(--amber); font-weight: 500; }
 </style>
 </head>
 <body>
@@ -335,6 +339,7 @@ var HMG = (function () {
 
   function enterHub(s) {
     s.silver += (s.result && s.result.marks) || 0;   // the settlement lands in the purse
+    s.scoreSaved = false;   // the river venture is a new run on the skippers' board
     s.phase = 'hub';
   }
 
@@ -530,8 +535,10 @@ function logRestore() {
 }
 function boardSave(name) {
   var r = S.result, sc = runScore(r);
+  var nm = (name || S.name || SR.get('hmg01name') || 'The skipper').slice(0, 18);
+  S.name = nm;
   var b = boardGet();
-  b.push({ n: (name || 'The skipper').slice(0, 18), s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' });
+  b.push({ n: nm, s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' });
   b.sort(function (x, y) { return y.s - x.s; });
   b = b.slice(0, 10);
   SR.set(KEYB, JSON.stringify(b));
@@ -837,11 +844,19 @@ function viewIntro() {
     '</div>' +
     '<p>Aldeigjuborg is where this contract ends. But the water-road does not: behind the buyer\u2019s weighing-house the Volkhov runs south to Holmgard, and furs travel cheap that way. The lake locks about the second of October.</p>' +
     '<p class="mut" style="font-size:13px">Under your hand: you, the skipper, and nine crew — ' + crew + '. Ten mouths eat ten rations a day. A man gone from the oars slows the ship; a man gone from the pot eats nothing. His share of the silver goes back to the merchant\u2019s tally.</p>' +
+    '<input id="skippername" class="boardinput" placeholder="Skipper\u2019s name (for the skippers\u2019 board)" maxlength="18" value="' + (SR.get('hmg01name') || '').replace(/"/g, '&quot;') + '"/>' +
     '<button class="primary" onclick="board()">Board the knarr</button>' +
     '<button class="small" onclick="toTitle()">Back</button>' +
     '</div>';
 }
-function board() { HMG.begin(S); save(); render(); }
+function board() {
+  var el = document.getElementById('skippername');
+  var nm = el && el.value ? el.value.trim().slice(0, 18) : '';
+  if (nm) { SR.set('hmg01name', nm); S.name = nm; }
+  else if (SR.get('hmg01name')) S.name = SR.get('hmg01name');
+  if (!S.name) S.name = 'The skipper';
+  HMG.begin(S); save(); render();
+}
 function choose(i) { HMG.applyChoice(S, i); save(); render(); }
 function mkt(a) { HMG.marketAct(S, a); save(); render(); }
 function viewDay() {
@@ -862,10 +877,10 @@ function viewMarket() {
     '<div class="scene">' + villageSVG('market') + '</div>' +
     '<h2 class="ev-title serif">A Chud fishing village</h2>' +
     '<p class="ev-text">Drying racks, dogfish smoke, a sheltered bay. They will trade — the season does not wait.</p>' +
-    '<button onclick="mkt(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">— 2 dirhams, +30 rations</span></button>' +
-    '<button onclick="mkt(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship and seal her seams <span class="mut">— 4 dirhams, hull +25</span></button>' +
-    '<button onclick="mkt(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (anySick ? '<span class="mut">— 2 dirhams, heals the sick</span>' : '<span class="mut">— 2 dirhams, heals the hurt</span>') + '</button>' +
-    '<button onclick="mkt(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats, no sailing, +spirits</span>') + '</button>' +
+    '<button onclick="mkt(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +30 rations') + '</span></button>' +
+    '<button onclick="mkt(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship, seal her seams <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : '— 4 dirhams · hull +25') + '</span></button>' +
+    '<button onclick="mkt(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">— purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">— 2 dirhams · heals the sick</span>' : '<span class="mut">— 2 dirhams · heals the hurt</span>')) + '</button>' +
+    '<button onclick="mkt(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats · no sailing · +spirits</span>') + '</button>' +
     '<button class="primary" onclick="mkt(\'castoff\')">Cast off</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
     '</div>';
@@ -889,16 +904,17 @@ function viewHub() {
     '<p class="ev-text">Leif\u2019s weighing-house stands behind the beach. The settlement silver is in your purse; the river road south is open. What you load now, you carry to Holmgard.</p>' +
     '<div class="tally" style="margin:0 0 12px">' +
     '<div class="row"><span>Purse after settlement</span><span>' + S.silver + ' dirhams</span></div>' +
-    '<div class="row"><span>Hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units — furs ' + S.furs + ' · captives ' + S.captives + ' (a captive eats one ration a day)</span></div>' +
-    '<div class="row"><span>Makers</span><span>' + held + ' hands — every oar speeds the river days</span></div>' +
+    '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units — ' + freeH + ' free</span></div>' +
     '</div>' +
-    '<button onclick="hub(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand ' + (hireable.length ? '<span class="mut">— 5 dirhams · ' + hireable[0] + ' is on the beach</span>' : '<span class="mut">— none left on the beach</span>') + '</button>' +
-    '<button onclick="hub(\'furs\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">— 2 dirhams, 1 hold unit, ~5 dirhams at Holmgard</span></button>' +
-    '<button onclick="hub(\'captive\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Buy a captive from the traders\u2019 benches <span class="mut">— 4 dirhams, 2 hold units, ~12 dirhams at Holmgard</span></button>' +
-    '<button onclick="hub(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">— 2 dirhams, +30 rations</span></button>' +
-    '<button onclick="hub(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship and seal her seams <span class="mut">— 4 dirhams, hull +25</span></button>' +
-    '<button onclick="hub(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (anySick ? '<span class="mut">— 2 dirhams, heals the sick</span>' : '<span class="mut">— 2 dirhams, heals the hurt</span>') + '</button>' +
-    '<button onclick="hub(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats, no sailing, +spirits</span>') + '</button>' +
+    '<div class="holdbar"><i style="width:' + Math.round(usedH / HMG.HOLD * 100) + '%"></i></div>' +
+    '<p class="hint">Loaded: <b>' + S.furs + '</b> fur ' + (S.furs === 1 ? 'bale' : 'bales') + ' (' + S.furs + ' unit' + (S.furs === 1 ? '' : 's') + ')' + (S.captives ? ' · <b>' + S.captives + '</b> captive' + (S.captives === 1 ? '' : 's') + ' (' + S.captives * 2 + ' units, each eats a ration a day)' : '') + '. ' + freeH + ' unit' + (freeH === 1 ? '' : 's') + ' free. Hands aboard: ' + held + ' — every oar speeds the river days.</p>' +
+    '<button onclick="hub(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '— no hands left on the beach' : (S.silver < 5 ? '— purse too light (5 dirhams)' : '— 5 dirhams · ' + hireable[0] + ' waits on the beach')) + '</span></button>' +
+    '<button onclick="hub(\'furs\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (freeH < 1 ? '— hold full' : '— 2 dirhams · 1 unit · sells ~5')) + '</span></button>' +
+    '<button onclick="hub(\'captive\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Buy a captive <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : (freeH < 2 ? '— hold full (needs 2 units)' : '— 4 dirhams · 2 units · sells ~12')) + '</span></button>' +
+    '<button onclick="hub(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +30 rations') + '</span></button>' +
+    '<button onclick="hub(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship, seal her seams <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : '— 4 dirhams · hull +25') + '</span></button>' +
+    '<button onclick="hub(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">— purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">— 2 dirhams · heals the sick</span>' : '<span class="mut">— 2 dirhams · heals the hurt</span>')) + '</button>' +
+    '<button onclick="hub(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats · +spirits</span>') + '</button>' +
     '<button class="primary" onclick="hub(\'castoff2\')">Cast off up the Volkhov</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
     '</div>';
@@ -931,10 +947,14 @@ function viewEnd() {
     '</div>' +
     '<h3 class="serif" style="margin:14px 0 4px">Score: ' + sc.total + '</h3>' +
     '<p class="mut" style="font-size:13px;margin:0 0 10px">Dirhams \u00d7 100 \u00b7 living crew ' + sc.alive + ' \u00d7 50 \u00b7 days before the freeze \u00d7 25 \u00b7 silver \u00d7 20.</p>' +
+    (function () {
+      if (!S.scoreSaved) boardSave(S.name);   // every leg\u2019s end scores itself: no forms, no friction
+      return '<p class="hint">Scored on the skippers\u2019 board as <b>' + (S.name || 'The skipper') + '</b> \u2014 ' + (r.dest || 'Aldeigjuborg') + '.</p>';
+    })() +
     ((r.how === 'arrived' && S.leg === 1)
-      ? '<button class="primary" onclick="toHub()">Continue up the Volkhov \u2014 the purse holds ' + S.silver + ' dirhams</button>' +
-        '<p class="mut" style="font-size:13px;margin:0 0 10px">The first contract is settled and scored; it stands on the board as Aldeigjuborg. The river road to Holmgard is a new venture: hire hands, buy furs or captives, and run the rapids. A run that ends on the river is scored as it stands \u2014 tag Holmgard.</p>'
-      : (S.scoreSaved ? '' : '<input id="boardname" class="boardinput" placeholder="Your name on the board" maxlength="18"/><button onclick="boardSave(document.getElementById(\'boardname\').value)">Save to the skippers\u2019 board</button>')) +
+      ? '<button class="primary" onclick="toHub()">Continue up the Volkhov</button>' +
+        '<p class="mut" style="font-size:13px;margin:0 0 10px">The river road to Holmgard is a new venture: hire hands, buy furs or captives, and run the rapids. A run that ends on the river is scored as it stands \u2014 tag Holmgard.</p>'
+      : '') +
     boardHtml(10) +
     '<button class="primary" onclick="newGame()">A new crossing</button>' +
     '<button onclick="newGame(' + seed + ')">Retry this fate</button>' +
