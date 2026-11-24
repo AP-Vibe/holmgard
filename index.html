@@ -574,9 +574,26 @@ function boardHtml(limit) {
   return '<div class="tally" style="margin-top:10px"><div class="row big"><span>Skippers\u2019 board — all crossings, every fate</span><span></span></div>' + rows + '</div>';
 }
 /* ---------- cloud board (Google Apps Script backend; degrades gracefully without it) ---------- */
-var KEYC = 'hmg01cloud';
+var KEYC = 'hmg01cloud', KEYL = 'hmg01local';  // KEYL: runs captured on this device while the cloud was unreachable
 var CLOUDDEFAULT = 'https://script.google.com/macros/s/AKfycbxi-27DJ3YxDunf5qX2EWrSi0HLxQY8Bs_vR_v54qCcs8cuEN3_v3Ll3c0to9MVwwVIcQ/exec';  // his deployment, round 18b — update in place, never a new deployment
 function cloudUrl() { return (SR.get(KEYC) || CLOUDDEFAULT).trim(); }
+var CLOUDSEED = [];  // baked snapshot of the live cloud board, refreshed by Vibe at each canvas rebuild
+function cloudLocal() { try { return JSON.parse(SR.get(KEYL) || '[]'); } catch (e) { return []; } }
+function cloudSaveLocal(rows) {
+  var L = cloudLocal();
+  var fresh = (rows || []).filter(function (r) {
+    return !L.some(function (k) { return k.n === r.n && k.s === r.s && k.d === r.d && k.t === r.t && k.g === r.g; });
+  });
+  L = L.concat(fresh).sort(function (a, b) { return (b.s | 0) - (a.s | 0); }).slice(0, 20);
+  SR.set(KEYL, JSON.stringify(L));
+  return L;
+}
+function cloudFallback() {
+  var L = cloudLocal().map(function (e) { e.loc = 1; return e; });
+  var merged = (CLOUDSEED || []).concat(L);
+  merged.sort(function (a, b) { return (b.s | 0) - (a.s | 0); });
+  return merged.slice(0, 10);
+}
 function cloudSet() {
   var el = document.getElementById('cloudurl');
   if (!el) return;
@@ -595,7 +612,12 @@ function cloudPush() {
   window.cloudMsg = 'Pushing your log upstream\u2026';
   fetch(u, { method: 'post', body: JSON.stringify({ rows: cloudRows() }) })
     .then(function (r) { window.cloudMsg = r.ok ? 'Your log is on the cloud board.' : 'The cloud board refused that push (' + r.status + ').'; render(); })
-    .catch(function (err) { window.cloudMsg = 'Could not reach the cloud board — ' + ((err && err.message) ? String(err.message).slice(0, 80) : 'no error text') + '. If this repeats, the preview window may be blocking network calls; open the game file in a plain browser tab.'; render(); });
+    .catch(function (err) {
+      cloudSaveLocal(cloudRows());
+      window.cloudBoard = cloudFallback(); window.cloudMode = 'local';
+      window.cloudMsg = 'Could not reach the cloud board — ' + ((err && err.message) ? String(err.message).slice(0, 80) : 'no error text') + '. Your log is saved on this device and shown below as saved here; a push from a plain browser tab will reach the shared board.';
+      render();
+    });
 }
 function cloudPull() {
   var u = cloudUrl();
@@ -604,18 +626,25 @@ function cloudPull() {
   fetch(u)
     .then(function (r) { return r.json(); })
     .then(function (j) {
-      window.cloudBoard = (j && j.rows) ? j.rows : [];
+      var live = (j && j.rows) ? j.rows : [];
+      var L = cloudLocal().map(function (e) { e.loc = 1; return e; });
+      window.cloudBoard = live.concat(L).sort(function (a, b) { return (b.s | 0) - (a.s | 0); }).slice(0, 10);
+      window.cloudMode = 'live';
       window.cloudMsg = 'Cloud board pulled.';
       render();
     })
-    .catch(function (err) { window.cloudMsg = 'Could not reach the cloud board — ' + ((err && err.message) ? String(err.message).slice(0, 80) : 'no error text') + '. If this repeats, the preview window may be blocking network calls; open the game file in a plain browser tab.'; render(); });
+    .catch(function (err) {
+      window.cloudBoard = cloudFallback(); window.cloudMode = 'local';
+      window.cloudMsg = 'Could not reach the cloud board — ' + ((err && err.message) ? String(err.message).slice(0, 80) : 'no error text') + '. Showing the baked board snapshot plus runs saved on this device.';
+      render();
+    });
 }
 function cloudHtml() {
   var u = cloudUrl();
   var msg = window.cloudMsg || '';
-  var cb = window.cloudBoard || [];
+  var cb = window.cloudBoard || cloudFallback();
   var rows = cb.map(function (e, i) {
-    return '<div class="row"><span>' + (i + 1) + '. ' + String(e.n || '').slice(0, 18) + '</span><span>' + (e.s | 0) + ' <span class="mut">— ' + (e.g || 'Aldeigjuborg') + ', day ' + (e.d | 0) + ', ' + (e.m | 0) + ' dirhams</span></span></div>';
+    return '<div class="row"><span>' + (i + 1) + '. ' + String(e.n || '').slice(0, 18) + (e.loc ? ' <span class="mut">· saved here</span>' : '') + '</span><span>' + (e.s | 0) + ' <span class="mut">— ' + (e.g || 'Aldeigjuborg') + ', day ' + (e.d | 0) + ', ' + (e.m | 0) + ' dirhams</span></span></div>';
   }).join('');
   return '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Cloud skippers\u2019 board (optional)</summary>' +
     '<p class="mut" style="font-size:13px;margin:8px 0">Paste the web-app address of your Apps Script leaderboard to share the board between devices.</p>' +
@@ -624,7 +653,7 @@ function cloudHtml() {
     '<button class="small" onclick="cloudPush()">Push this device\u2019s log</button> ' +
     '<button class="small" onclick="cloudPull()">Pull the cloud board</button> ' +
     (msg ? '<p class="mut" style="font-size:13px;margin:6px 0">' + msg + '</p>' : '') +
-    (rows ? '<div class="tally" style="margin-top:8px"><div class="row big"><span>Cloud board — far shores</span><span></span></div>' + rows + '</div>' : '') +
+    (rows ? '<div class="tally" style="margin-top:8px"><div class="row big"><span>Cloud board — far shores</span><span></span></div>' + (window.cloudMode === 'live' ? '' : '<p class="mut" style="font-size:12px;margin:2px 0">Baked snapshot plus runs saved on this device — the live board was not reachable from this window.</p>') + rows + '</div>' : '') +
     '</details>';
 }
 var S = null;
