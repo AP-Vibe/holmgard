@@ -923,6 +923,7 @@ function board() {
   if (nm) { SR.set('hmg01name', nm); S.name = nm; }
   else if (SR.get('hmg01name')) S.name = SR.get('hmg01name');
   if (!S.name) S.name = 'The skipper';
+  if (el && el.blur) { try { el.blur(); } catch (e) {} }
   HMG.begin(S); save(); render();
 }
 function choose(i) { HMG.applyChoice(S, i); save(); render(); }
@@ -1055,16 +1056,22 @@ function viewEnd() {
 function render() {
   var app = document.getElementById('app');
   if (inHelp) { app.innerHTML = viewHelp(); return; }
-  if (keepScroll) { keepScroll = false; } else { window.scrollTo(0, 0); }
-  if (inTitle) { app.innerHTML = viewTitle(); return; }
-  if (!S) { inTitle = true; app.innerHTML = viewTitle(); return; }
-  if (S.phase === 'intro') app.innerHTML = '<div style="height:6px"></div>' + viewIntro();
-  else if (S.phase === 'day') app.innerHTML = header() + viewDay();
-  else if (S.phase === 'market') app.innerHTML = header() + viewMarket();
-  else if (S.phase === 'hub') app.innerHTML = header() + viewHub();
-  else if (S.phase === 'end') app.innerHTML = header() + viewEnd();
-  else { inTitle = true; app.innerHTML = viewTitle(); }
-  return;
+  var keep = keepScroll; keepScroll = false;
+  var h;
+  if (inTitle) h = viewTitle();
+  else if (!S) { inTitle = true; h = viewTitle(); }
+  else if (S.phase === 'intro') h = '<div style="height:6px"></div>' + viewIntro();
+  else if (S.phase === 'day') h = header() + viewDay();
+  else if (S.phase === 'market') h = header() + viewMarket();
+  else if (S.phase === 'hub') h = header() + viewHub();
+  else if (S.phase === 'end') h = header() + viewEnd();
+  else { inTitle = true; h = viewTitle(); }
+  app.innerHTML = h;
+  if (!keep) {
+    var ae = document.activeElement;
+    if (ae && ae.blur) { try { ae.blur(); } catch (e) {} }
+    window.scrollTo(0, 0);
+  }
 }
 if (SR.get(KEY)) loadSlot();   // boot: restore the skippers' board from the save slot
 render();
