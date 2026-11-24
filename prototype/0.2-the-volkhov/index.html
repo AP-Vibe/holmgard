@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -89,7 +88,7 @@
 <body>
 <div id="wrap">
   <div id="app"><div class="sub">loading…</div></div>
-  <div class="footer">Holmgard and beyond — 0.2 “The Crossing &amp; the Volkhov” · prototype · draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. Placement art is placeholder — the HD-2D pipeline comes later.</div>
+  <div class="footer">Holmgard and beyond — 0.2 “The Crossing &amp; the Volkhov” · prototype · draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The Volkhov\\u2019s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name H\u00f3lmgar\u00f0r is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</div>
 </div>
 <script>
 var HMG = (function () {
@@ -445,7 +444,7 @@ var HMG = (function () {
     calm: { title: 'Dead calm', text: 'The tar sweats in the seams. The crew sits at the oars and waits on your word.', opts: ['Row all day (good speed, the crew suffers)', 'Rest and wait for wind (slow and easy)'] },
     fog: { title: 'A grey wall of fog', text: 'The lead-line knocks against the rail like a slow clock.', opts: ['Stop and wait for it to lift (safe, a lost morning)', 'Sail on blind, feeling for rocks with the line (fast, the ship may strike a rock)'] },
     seals: { title: 'Seals on the skerry', text: 'Seals bask on a low rock. Ottar strings his bow without being asked.', opts: ['Let him hunt — fresh meat for the pots (slow day, +food)', 'Press on with the sailing (good speed)'] },
-    chud: { title: 'A Chud log-boat', text: 'It shadows you at half a mile: two men, laden with smoked fish, paddling sideways to show their goods.', opts: ['Buy smoked fish — one dirham of silver (+much food)', 'Wave them off and keep going (good speed)'] },
+    chud: { title: 'A Chud log-boat', text: 'It shadows you at half a mile: two men, laden with smoked fish, paddling sideways to show their goods.', opts: ['Buy smoked fish — one dirham (+much food)', 'Wave them off and keep going (good speed)'] },
     seam: { title: 'The newest seam is leaking', text: 'Groa has the tar pot warm before you finish the sentence. It is your call.', opts: ['Stop and seal it properly (slow, the ship heals)', 'Patch it while sailing (fast, the leak will worsen)'] },
     rain: { title: 'Cold rain, straight down', text: 'Hoods up, backs bowed. The Baltic does not care whose crossing this is.', opts: ['Endure it'] },
     aurora: { title: 'The sky burns green', text: 'That night the northern sky drips silver fire. No one speaks of it. In the morning the oars seem lighter.', opts: ['Take it as a good omen'] },
@@ -453,8 +452,8 @@ var HMG = (function () {
     w1: { title: 'Halfr shivers by the mast', text: 'His teeth rattle like loose rigging. Groa presses a hand to his brow, then shakes her head at you.', opts: ['Rest the whole crew a day so he can sweat it out (slow, but he should recover)', 'Broth and careful nursing tonight (costs food, he may still worsen)', 'Make him row (good speed, he will surely worsen)'] },
     w2: { title: 'Halfr cannot close his hands', text: 'He will not say where it hurts. He will not let go of the oar, either.', opts: ['Take a slow, gentle day — lay him in the stern (slow, half a chance he turns)', 'Keep the pace — the oars need backs (good speed, he will not last)'] },
     squall: { title: 'A black squall off the Ladoga shore', text: 'A wall of weather stands between you and the river mouth. Run its edge, or let it pass.', opts: ['Race along its edge (fast, the ship takes damage)', 'Hold still and let it pass (safe, a lost day)'] },
-    lowwater: { title: 'The river runs thin', text: 'Sandbars stand yellow where last week the marks were two fathoms. The pole confirms it: the channel ahead is bony.', opts: ['Lay at anchor and wait for the water to deepen (safe, a slow morning)', 'Drag her over the bar with the crew in the shallows (fast, the hull may open on the sand)'] },
-    portage: { title: 'The bypass rapids', text: 'The Volkhov throws itself white over a rift of stone. Groa spits over the side. There is a hauling-path on the bank — the old way round.', opts: ['Warp her through the rift with lines from the bank (everyone hauls, the crew suffers)', 'Run the rapids under oar (very fast, the hull may open and a bale may soak)', 'Unship the cargo and walk it round the path (a whole safe day — but a walked captive may bolt for the woods)'] }
+    lowwater: { title: 'The river runs thin', text: 'Sandbars stand yellow where last week the channel ran two fathoms. The pole confirms it: the river is at her dry-season bones. Low water after a dry summer is the Volkhov\\u2019s way — the old hands nod it through.', opts: ['Lay at anchor and wait for the water to deepen (safe, a slow morning)', 'Drag her over the bar with the crew in the shallows (fast, the hull may open on the sand)'] },
+    portage: { title: 'The bypass rapids', text: 'The Volkhov throws itself white over the Gostinopol rift — the rapids that stand guard at Holmgard\\u2019s door. Even the locals lose keels here; the old way round is goods walked along the bank and the boat warped up on lines.', opts: ['Warp her through the rift with lines from the bank (everyone hauls, the crew suffers)', 'Run the rapids under oar (very fast, the hull may open and a bale may soak)', 'Unship the cargo and walk it round the path (a whole safe day — but a walked captive may bolt for the woods)'] }
   };
 
   function currentEvent(s) {
@@ -625,7 +624,7 @@ function viewHelp() {
     '<div><span>Silver \u2014 top</span>Money in the purse, counted in dirhams \u2014 the silver coins the river trade runs on. It buys fish, hull repairs, healing, hands and cargo. Salvage it: leftover silver adds to your score.</div>' +
     '<div><span>Hull \u2014 top</span>The boat\u2019s heartbeat. Storms, blind rocks and untreated leaks wound her; at zero she sinks with the cargo. Beaching and re-sealing her seams heals it.</div>' +
     '<div><span>Spirits \u2014 top</span>Crew mood. Overtaxed and starving men sour, and sour men make bad crossings; fresh food, good omens and rest raise spirits.</div>' +
-    '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg. Second: up the Volkhov to Holmgard. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
+    '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg — near 500 sea-miles, a fair crossing 14\u201320 days. Second: up the Volkhov to Holmgard — near 120 miles, 10\u201315 days loaded. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
     '<div><span>The landing \u2014 between the legs</span>At Aldeigjuborg the cloth is scored and paid out. The hub screen follows: hire hands from the beach, load furs (2 dirhams, 1 hold unit) or a captive (4 dirhams, 2 hold units), then cast off up the river. The hold fits 12 units.</div>' +
     '<div><span>Captives \u2014 hold and pot</span>A captive is cargo that eats: one ration a day, counted in the day\u2019s mouths. If the pot runs dry, the crew eats first, the captives go hungry, and the crew hears them (spirits drop). At the rapids, walking them round means one may bolt for the woods.</div>' +
     '<div><span>The freeze \u2014 day 32 (Oct 2)</span>Lake Ladoga locks with ice. Arrive after it and the buyer pays half; drag on past day 42 and nobody is left to buy at all.</div>' +
@@ -851,8 +850,11 @@ function viewIntro() {
     '<div class="terms">' +
     '<div><span>Cargo </span>three bales of Gotland cloth — keep them dry</div>' +
     '<div><span>Buyer </span>Farman Leif, Aldeigjuborg — the journey\u2019s end</div>' +
-    '<div><span>On delivery </span>30 dirhams of silver</div>' +
+    '<div><span>On delivery </span>30 dirhams</div>' +
     '<div><span>Paid now </span>8 dirhams for provision</div>' +
+    '<div><span>The run </span>near 500 sea-miles of skerries, open Baltic and one great lake — a fair crossing takes 14–20 days</div>' +
+    '<div><span>Provision </span>140 rations aboard · ten mouths eat ten a day — fourteen days of food, less if storms stall you</div>' +
+    '<div><span>The clock </span>the lake locks with ice about the 2nd of October (day 32) — arrive after it and the buyer pays half</div>' +
     '</div>' +
     '<p>Aldeigjuborg is where this contract ends. But the water-road does not: behind the buyer\u2019s weighing-house the Volkhov runs south to Holmgard, and furs travel cheap that way. The lake locks about the second of October.</p>' +
     '<p class="mut" style="font-size:13px">Under your hand: you, the skipper, and nine crew — ' + crew + '. Ten mouths eat ten rations a day. A man gone from the oars slows the ship; a man gone from the pot eats nothing. His share of the silver goes back to the merchant\u2019s tally.</p>' +
@@ -920,6 +922,19 @@ function viewHub() {
     '</div>' +
     '<div class="holdbar"><i style="width:' + Math.round(usedH / HMG.HOLD * 100) + '%"></i></div>' +
     '<p class="hint">Loaded: <b>' + S.furs + '</b> fur ' + (S.furs === 1 ? 'bale' : 'bales') + ' (' + S.furs + ' unit' + (S.furs === 1 ? '' : 's') + ')' + (S.captives ? ' · <b>' + S.captives + '</b> captive' + (S.captives === 1 ? '' : 's') + ' (' + S.captives * 2 + ' units, each eats a ration a day)' : '') + '. ' + freeH + ' unit' + (freeH === 1 ? '' : 's') + ' free. Hands aboard: ' + held + ' — every oar speeds the river days.</p>' +
+    (function () {
+      var alive = S.crew.filter(function (c) { return !c.dead; }).length;
+      var m2 = 1 + alive + (S.captives || 0);
+      var daysOf = Math.floor(S.food / m2);
+      var cap = S.captives ? ' and ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') : '';
+      var rows = '<div class="tally" style="margin:12px 0">' +
+      '<div class="row"><span>The river road</span><span>near 120 miles up the Volkhov \u2014 a loaded knarr makes it in 10\u201315 days</span></div>' +
+      '<div class="row"><span>River mouths to feed</span><span>' + m2 + ' (you, the hands' + cap + ') eat ' + m2 + ' rations a day</span></div>' +
+      '<div class="row"><span>Rations aboard</span><span>' + S.food + ' \u2014 about ' + daysOf + ' days of food</span></div>' +
+      '</div>';
+      if (daysOf < 12) return rows + '<p class="hint"><b>' + daysOf + ' days of food for a 10\u201315 day river.</b> The Volkhov runs thin over her sandbars after a dry summer, and the Gostinopol rapids above the landing guard the way \u2014 cargo walked round them can cost a captive. Buy fish before you cast off.</p>';
+      return rows + '<p class="mut" style="font-size:13px;margin:0 0 10px">Mind the river all the same: sandbars in the dry season, the Gostinopol rapids above the landing, and the freeze closing the world not far behind.</p>';
+    })() +
     '<button onclick="hub(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '— no hands left on the beach' : (S.silver < 5 ? '— purse too light (5 dirhams)' : '— 5 dirhams · ' + hireable[0] + ' waits on the beach')) + '</span></button>' +
     '<button onclick="hub(\'furs\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (freeH < 1 ? '— hold full' : '— 2 dirhams · 1 unit · sells ~5')) + '</span></button>' +
     '<button onclick="hub(\'captive\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Buy a captive <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : (freeH < 2 ? '— hold full (needs 2 units)' : '— 4 dirhams · 2 units · sells ~12')) + '</span></button>' +

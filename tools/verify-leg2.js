@@ -92,9 +92,28 @@ ok(g.S.result.tier === 'holmgard' || g.S.result.tier === 'full2', 'leg 2 settlem
 ok(g.S.result.marks === g.S.furs * 5 + g.S.captives * 12, 'Holmgard pays furs*5 + captives*12 (' + g.S.result.marks + ')');
 
 // dirham relabel: no user-facing "marks" left
-const faces = ['30 marks','8 marks','two marks','Marks earned','marks of the settlement','— 2 marks','— 4 marks'];
+const faces = ['30 marks','8 marks','two marks','Marks earned','marks of the settlement','— 2 marks','— 4 marks','the marks were two fathoms'];
 const leftovers = faces.filter(f => m[1].indexOf(f) >= 0);
 ok(leftovers.length === 0, 'dirham relabel: no leftover user-facing mark strings (' + leftovers.join(',') + ')');
+ok(m[1].indexOf('the channel ran two fathoms') >= 0, 'lowwater text reads depth as channel, not "marks"');
+
+// round 21: leg-duration briefing (his note: "before journey begins there should be info on how much it lasts on average")
+ok(m[1].indexOf('a fair crossing takes 14') >= 0, 'intro states typical crossing duration (14-20 days)');
+ok(m[1].indexOf('140 rations aboard') >= 0 && m[1].indexOf('fourteen days of food') >= 0, 'intro states rations vs mouths (140 / ten a day)');
+ok(m[1].indexOf('days loaded') >= 0 && m[1].indexOf('near 120 miles up the Volkhov') >= 0, 'hub states the river leg typical duration and distance');
+ok(m[1].indexOf('days of food') >= 0 && m[1].indexOf('rations a day') >= 0, 'hub shows rations-days math (rations / river mouths)');
+ok(m[1].indexOf('Gostinopol') >= 0, 'portage/rapids named with historical provenance in text');
+
+// round 21: the hub briefing computes live
+g.newGame(777); g.board();
+g.S.leg = 2; g.S.phase = 'hub'; g.S.furs = 2; g.S.captives = 1; g.S.food = 140; g.S.crew.forEach(c => c.dead = false);
+const hubHtml = g.viewHub();
+ok(hubHtml.indexOf('Rations aboard</span><span>140') >= 0 && hubHtml.indexOf('about 12 days of food') >= 0, 'hub reports ~12 days of food for 140 rations / 11 river mouths (skipper + 9 hands + 1 captive)');
+ok(hubHtml.indexOf('Buy fish before you cast off') < 0, 'no under-supplied warning when food covers the leg');
+g.S.food = 55;
+const thinHtml = g.viewHub();
+ok(thinHtml.indexOf('Buy fish before you cast off') >= 0, 'under-supplied pantry (55 rations / 11 mouths) warns to buy fish');
+ok(m.indexOf('dirhams of silver') < 0 && m.indexOf('dirham of silver') < 0, 'currency reads plain dirhams, never "dirhams of silver" (his round-21 note)');
 ok(m[1].indexOf('dirhams') > 0, 'dirhams present in UI strings');
 
 // river art: leg 2 renders its own graphics, distinct from the sea set
