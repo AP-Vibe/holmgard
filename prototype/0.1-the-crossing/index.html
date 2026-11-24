@@ -419,8 +419,9 @@ var keepScroll = false;
 function showHelp(from) { inHelp = true; helpFrom = from || (S && S.phase && S.phase !== 'end' ? 'game' : 'title'); render(); }
 function closeHelp() { inHelp = false; if (helpFrom === 'game') { keepScroll = true; } render(); }
 function viewHelp() {
-  return '<div class="card contract">' +
+  return '<div class="card contract help">' +
     '<h2 class="serif" style="margin-top:0">How to read the screen</h2>' +
+    '<style>.help .terms div { margin: 16px 0; } .help .terms span { display: block; margin: 0 0 10px; }</style>' +
     '<div class="terms">' +
     '<div><span>Rations \u2014 top left</span>Food aboard. Your company \u2014 ten mouths when everyone lives \u2014 eats every day. When the pot runs dry the crew weakens first, then dies one by one. Smoking fish on a skerry or buying from locals refills it. A dead man eats nothing.</div>' +
     '<div><span>Silver \u2014 top</span>Provision money from the merchant. It buys fish, hull repairs and healing on the way. Salvage it on delivery: leftover silver adds to your score.</div>' +
