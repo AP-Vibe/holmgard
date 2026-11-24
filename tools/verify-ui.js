@@ -51,3 +51,23 @@ const blob = JSON.parse(global.localStorage._s['hmg01save']);
 chk('slot blob still v2 with board', blob.v === 2 && blob.b);
 
 console.log(fail === 0 ? 'ALL GREEN' : 'FAILURES: ' + fail);
+
+// 6) carry-your-log: encode/decode roundtrip + restore sanitization
+const enc = g.logEncode([{n:'Andrzej',s:4620,d:22,m:38,t:'full'}]);
+const dec = g.logDecode(enc);
+chk('log code roundtrip', dec[0].n === 'Andrzej' && dec[0].s === 4620);
+// wipe the board, then restore from the code via the storage+render path
+g.SR.set('hmg01board', '[]');
+chk('board wiped for the test', g.boardGet().length === 0);
+document.getElementById = (id) => ({ value: enc });
+// (the harness stubbed getElementById at load; override returns the code textarea)
+g.logRestore();
+chk('logRestore rebuilds the board from the code', g.boardGet().length === 1 && g.boardGet()[0].n === 'Andrzej');
+// garbage code is refused cleanly
+document.getElementById = (id) => ({ value: '###not-base64###' });
+const beforeBoard = JSON.stringify(g.boardGet());
+let alertMsg = '';
+global.alert = (m) => { alertMsg = m; };
+g.logRestore();
+chk('garbage log code refused, board untouched', alertMsg.indexOf('does not read') >= 0 && JSON.stringify(g.boardGet()) === beforeBoard);
+console.log(fail === 0 ? 'ALL GREEN' : 'FAILURES: ' + fail);

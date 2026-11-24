@@ -390,6 +390,30 @@ function runScore(r) {
 function boardGet() {
   try { return JSON.parse(SR.get(KEYB) || '[]'); } catch (e) { return []; }
 }
+/* carry-your-log: the preview's storage can be wiped between canvas updates,
+   so the skippers' board can be exported as a code and restored after a reset */
+function logEncode(b) { return btoa(unescape(encodeURIComponent(JSON.stringify(b)))); }
+function logDecode(t) { return JSON.parse(decodeURIComponent(escape(atob(t)))); }
+function logFill() {
+  var el = document.getElementById('logcode');
+  if (el) el.value = logEncode(boardGet());
+}
+function logRestore() {
+  var el = document.getElementById('logcode');
+  if (!el || !el.value || !el.value.trim()) return;
+  try {
+    var b = logDecode(el.value.trim());
+    if (!Array.isArray(b)) throw new Error('not a log');
+    b = b.filter(function (e) { return e && typeof e.s === 'number' && e.n; })
+      .slice(0, 10)
+      .map(function (e) { return { n: String(e.n).slice(0, 18), s: e.s | 0, d: e.d | 0, m: e.m | 0, t: e.t }; });
+    SR.set(KEYB, JSON.stringify(b));
+    save();
+    render();
+  } catch (e) {
+    alert('That log code does not read as a skippers\u2019 board.');
+  }
+}
 function boardSave(name) {
   var r = S.result, sc = runScore(r);
   var b = boardGet();
