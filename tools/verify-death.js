@@ -44,24 +44,17 @@ g.HMG; // (adj is exercised via applyChoice; use crewFactor + a choice gain)
 const gF = g.HMG.crewFactor(sFull), gD = g.HMG.crewFactor(sDead);
 chk('death slows the ship (factor ' + gF + ' vs ' + gD + ')', gF === 1 && Math.abs(gD - 0.9) < 1e-9);
 
-// 4) hire at market: kill a man, hire, slot becomes a hired hand, morale up, silver down
+// 4) hire is GONE from the mid-leg market (round 15: replacement is post-settlement, v0.2 hub phase)
 s = g.HMG.newRun(777); g.S = s; g.board();
 s.silver = 8;
 s.crew[8].dead = true; // Dyri lost
 // force market phase
 s.progress = g.HMG.VILLAGE_P; s.phase = 'market'; s.flags.village = true;
-const av = '(a hired man rows again)';
-const before = { silver: s.silver, alive: s.crew.filter(c => !c.dead).length, morale: s.morale };
-g.mkt('hire');
-const after = { silver: s.silver, alive: s.crew.filter(c => !c.dead).length, morale: s.morale };
-chk('hire: costs 5 silver', after.silver === before.silver - 5);
-chk('hire: crew back to full', after.alive === before.alive + 1);
-chk('hire: slot is a hired hand', s.crew.some(c => c.hired && c.role === 'hired hand' && !c.dead));
-chk('hire: spirits rise', after.morale === before.morale + 1);
-chk('hire: crewFactor back to 1.0', g.HMG.crewFactor(s) === 1);
-// burn the rest of silver, button path safe at 0
-s.silver = 3; g.mkt('hire'); // should be a no-op
-chk('hire: no-op when silver < 5', s.silver === 3 && s.crew.filter(c => !c.dead && c.hired).length === 1);
+const before = JSON.stringify(s.crew);
+g.mkt('hire'); // must be a complete no-op now
+chk('hire removed: state untouched by stray hire call', JSON.stringify(s.crew) === before && s.silver === 8);
+chk('hire removed: no hire button in market view', g.viewMarket ? g.viewMarket().indexOf('Hire a local hand') < 0 : true);
+chk('hire removed: deaths still slow the ship (no mid-leg buyback)', g.HMG.crewFactor(s) === 0.9);
 
 // 5) leaderboards live in the save slot (v2 blob carries the board, boot reconciles)
 s = g.HMG.newRun(1234); g.S = s; g.board();

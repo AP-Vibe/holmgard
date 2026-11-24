@@ -259,22 +259,13 @@ var HMG = (function () {
     endOfDay(s);
   }
 
-  var HIRES = ['Audun', 'Thorstein', 'Ragnvald', 'Sverting'];
+  // crew replacement is a POST-SETTLEMENT activity (v0.2 hub phase: hire with the marks from selling the cargo),
+  // not mid-leg petty-cash hiring. Banked for the second leg; the hire pool is on file:
+  // var HIRES = ['Audun', 'Thorstein', 'Ragnvald', 'Sverting'];
 
   function marketAct(s, a) {
     if (s.phase !== 'market') return;
     if (a === 'fish' && s.silver >= 2) { s.silver -= 2; s.food += 30; }
-    else if (a === 'hire' && s.silver >= 5 && s.crew.some(function (c) { return c.dead; })) {
-      s.silver -= 5;
-      for (var i = s.crew.length - 1; i >= 0; i--) {
-        if (s.crew[i].dead) {
-          if (s.crew[i].name === 'Halfr') { s.sick.stage = 0; s.sick.resolved = true; }
-          s.crew[i] = { name: HIRES[i % HIRES.length], role: 'hired hand', hp: 2, dead: false, graveF: 2, hired: true };
-          break;
-        }
-      }
-      s.morale = Math.min(10, s.morale + 1);
-    }
     else if (a === 'careen' && s.silver >= 4) { s.silver -= 4; s.hull = Math.min(100, s.hull + 25); }
     else if (a === 'wise' && s.silver >= 2) {
       s.silver -= 2;
