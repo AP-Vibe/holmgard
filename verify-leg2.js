@@ -230,5 +230,9 @@ ok(m[1].indexOf('app.innerHTML = h;') >= 0, 'render builds the new screen fully 
 ok(m[1].indexOf('window.scrollTo(0, 0);') > m[1].indexOf('app.innerHTML = h;') && m[1].indexOf('window.scrollTo(0, 0);') < m[1].indexOf('if (SR.get(KEY)) loadSlot();'), 'window scroll now happens AFTER the new content is in place (no recenter fight)');
 ok(m[1].indexOf('var ae = document.activeElement;') >= 0 && m[1].indexOf('ae.blur') >= 0, 'the focused input is blurred before recentering');
 ok(/function board\(\) \{[\s\S]*?el\.blur/m.test(m[1]), 'boarding blurs the name input so the closing keyboard does not drag the view');
+
+// round 34: iOS input zoom (his report: typing the skipper name zooms the screen in and sideways, and it STAYS that way)
+ok(/input\.boardinput \{[\s\S]*?font-size: 16px/.test(md), 'board inputs are 16px — iOS Safari auto-zooms any input below 16px and never zooms back out');
+ok(!/(input|input\.boardinput) \{[^}]*font-size: 1[0-5]px/.test(md), 'no input CSS ends up below 16px');
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
