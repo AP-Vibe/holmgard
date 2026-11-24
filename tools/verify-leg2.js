@@ -100,7 +100,7 @@ ok(m[1].indexOf('the channel ran two fathoms') >= 0, 'lowwater text reads depth 
 // round 21: leg-duration briefing (his note: "before journey begins there should be info on how much it lasts on average")
 ok(m[1].indexOf('a fair crossing takes 15') >= 0, 'intro states typical crossing duration (15-20 days, adjusted up)');
 ok(m[1].indexOf('140 rations aboard') >= 0 && m[1].indexOf('fourteen days of food') >= 0, 'intro states rations vs mouths (140 / ten a day)');
-ok(m[1].indexOf('days loaded') >= 0 && m[1].indexOf('near 120 miles up the Volkhov') >= 0, 'hub states the river leg typical duration and distance');
+ok(m[1].indexOf('days loaded') >= 0 && m[1].indexOf('near 120 miles upriver to Holmgard') >= 0, 'hub states the river leg typical duration and distance');
 ok(m[1].indexOf('days of food') >= 0 && m[1].indexOf('rations a day') >= 0, 'hub shows rations-days math (rations / river mouths)');
 ok(m[1].indexOf('Gostinopol') >= 0, 'portage/rapids named with historical provenance in text');
 
@@ -155,6 +155,16 @@ ok(g.S.leg === 2 && g.S.flags.feasted === false, 'castoff2 resets the feast flag
 ok(m[1].indexOf('The quiet water below the rift') >= 0, 'river deck has the nets food event');
 ok(m[1].indexOf('A night camp on the shingle') >= 0, 'river deck has the hearth spirits event');
 ok(m[1].indexOf('typically 15') >= 0 && m[1].indexOf('days loaded') >= 0 && m[1].indexOf('fill the pantry at the landing') >= 0, 'leg-1 end screen Continue note states the honest river duration');
+
+
+// round 24: compact crew readout, Norse naming, leg-2 tone-down
+ok(m[1].indexOf("'lost at sea'") < 0 && m[1].indexOf('var aliveN') >= 0, 'end screen lists crew compactly (N of M alive) instead of one row each');
+g.newGame(777); g.board();
+g.S.phase = 'end'; g.S.result = { how: 'arrived', dest: 'Holmgard', title: 't', text: 't', days: 30, date: 'Sep 20', crew: [{ name: 'Ketil', dead: false }, { name: 'Halfr', dead: true }], deaths: 1, wet: 0, silver: 5, morale: 6, marks: 10 };
+try { const eh = g.viewEnd(); ok(eh.indexOf('1 of 2 alive') >= 0 && eh.indexOf('Lost</span>') >= 0 && eh.indexOf('Halfr') >= 0, 'compact crew row counts survivors and lists only the lost by name'); } catch (e) { ok(false, 'viewEnd compact crew threw: ' + e.message); }
+const uidx = m[1].indexOf('villageSVG');
+ok(m[1].indexOf(' up the Volkhov') < 0 && m[1].indexOf('Cast off for Holmgard') >= 0 && m[1].indexOf('Continue to Holmgard') >= 0, 'user-facing buttons/labels say Holmgard and the river, never the Volkhov name');
+ok(m[1].indexOf('food: 10, morale: 1') >= 0 && m[1].indexOf('morale: 1, progress: 3') >= 0, 'river nets/hearth toned down (food +10, hearth +1 morale, per his round-24 balance note)');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);

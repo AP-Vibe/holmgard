@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Holmgard and beyond — 0.2 The Crossing &amp; the Volkhov</title>
+<title>Holmgard and beyond — 0.2 The Crossing</title>
 <style>
   :root {
     --bg: #10161d;
@@ -88,7 +88,7 @@
 <body>
 <div id="wrap">
   <div id="app"><div class="sub">loading…</div></div>
-  <div class="footer">Holmgard and beyond — 0.2 “The Crossing &amp; the Volkhov” · prototype · draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The Volkhov\\u2019s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name H\u00f3lmgar\u00f0r is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</div>
+  <div class="footer">Holmgard and beyond — 0.2 “The Crossing” · prototype · draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The the river\\u2019s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name H\u00f3lmgar\u00f0r is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</div>
 </div>
 <script>
 var HMG = (function () {
@@ -302,11 +302,11 @@ var HMG = (function () {
         }
         break;
       case 'nets':
-        if (i === 0) adj(s, { progress: 4, food: 15, morale: 1 });   // out with the nets: fresh food, a slow morning
+        if (i === 0) adj(s, { progress: 4, food: 10, morale: 1 });   // out with the nets: fresh food, a slow morning
         else adj(s, { progress: 9 });                                 // trust to the pole and push on
         break;
       case 'hearth':
-        if (i === 0) adj(s, { morale: 2, progress: 2 });              // songs till late by the fire
+        if (i === 0) adj(s, { morale: 1, progress: 3 });              // songs till late by the fire
         else adj(s, { progress: 8 });                                 // turn in early, gone with the light
         break;
     }
@@ -411,7 +411,7 @@ var HMG = (function () {
     } else if (how === 'frozen') {
       base.tier = 'fail'; base.title = 'The lake locks early'; base.marks = 0;
       base.text = (s.leg === 2)
-        ? 'The Volkhov throws a skin of ice across the current, and the current wins. The furs winter in the hold of a borrowed hut.'
+        ? 'The river throws a skin of ice across the current, and the current wins. The furs winter in the hold of a borrowed hut.'
         : 'Aldeigjuborg\u2019s roof-smoke stands on the far shore and the water between turns to stone. The crossing ends in a borrowed hut.';
     } else {
       var late = s.day > FREEZE;
@@ -467,8 +467,8 @@ var HMG = (function () {
     w1: { title: 'Halfr shivers by the mast', text: 'His teeth rattle like loose rigging. Groa presses a hand to his brow, then shakes her head at you.', opts: ['Rest the whole crew a day so he can sweat it out (slow, but he should recover)', 'Broth and careful nursing tonight (costs food, he may still worsen)', 'Make him row (good speed, he will surely worsen)'] },
     w2: { title: 'Halfr cannot close his hands', text: 'He will not say where it hurts. He will not let go of the oar, either.', opts: ['Take a slow, gentle day — lay him in the stern (slow, half a chance he turns)', 'Keep the pace — the oars need backs (good speed, he will not last)'] },
     squall: { title: 'A black squall off the Ladoga shore', text: 'A wall of weather stands between you and the river mouth. Run its edge, or let it pass.', opts: ['Race along its edge (fast, the ship takes damage)', 'Hold still and let it pass (safe, a lost day)'] },
-    lowwater: { title: 'The river runs thin', text: 'Sandbars stand yellow where last week the channel ran two fathoms. The pole confirms it: the river is at her dry-season bones. Low water after a dry summer is the Volkhov\\u2019s way — the old hands nod it through.', opts: ['Lay at anchor and wait for the water to deepen (safe, a slow morning)', 'Drag her over the bar with the crew in the shallows (fast, the hull may open on the sand)'] },
-    portage: { title: 'The bypass rapids', text: 'The Volkhov throws itself white over the Gostinopol rift — the rapids that stand guard at Holmgard\\u2019s door. Even the locals lose keels here; the old way round is goods walked along the bank and the boat warped up on lines.', opts: ['Warp her through the rift with lines from the bank (everyone hauls, the crew suffers)', 'Run the rapids under oar (very fast, the hull may open and a bale may soak)', 'Unship the cargo and walk it round the path (a whole safe day — but a walked captive may bolt for the woods)'] },
+    lowwater: { title: 'The river runs thin', text: 'Sandbars stand yellow where last week the channel ran two fathoms. The pole confirms it: the river is at her dry-season bones. Low water after a dry summer is the the river\\u2019s way — the old hands nod it through.', opts: ['Lay at anchor and wait for the water to deepen (safe, a slow morning)', 'Drag her over the bar with the crew in the shallows (fast, the hull may open on the sand)'] },
+    portage: { title: 'The bypass rapids', text: 'The river throws itself white over the Gostinopol rift — the rapids that stand guard at Holmgard\\u2019s door. Even the locals lose keels here; the old way round is goods walked along the bank and the boat warped up on lines.', opts: ['Warp her through the rift with lines from the bank (everyone hauls, the crew suffers)', 'Run the rapids under oar (very fast, the hull may open and a bale may soak)', 'Unship the cargo and walk it round the path (a whole safe day — but a walked captive may bolt for the woods)'] },
     nets: { title: 'The quiet water below the rift', text: 'Below the last white water the current slows and shoals, pike basking in the shallows where the river spreads wide. A night of nets here would fill the fish-boxes — but every hour at anchor is an hour lost upriver.', opts: ['Out with the nets (fresh food, a slow morning)', 'Trust to the pole and push on (good speed)'] },
     hearth: { title: 'A night camp on the shingle', text: 'A dry bar of stones above the current, birchwood at hand. The hands look at the fire-pit and then at the pole — a night of songs would lift hearts gone thin on smoked fish, and cost the morning light.', opts: ['Sit the night by the fire — songs till late (spirits rise, a slow start)', 'Turn in early and be gone with the light (good speed)'] }
   };
@@ -641,7 +641,7 @@ function viewHelp() {
     '<div><span>Silver \u2014 top</span>Money in the purse, counted in dirhams \u2014 the silver coins the river trade runs on. It buys fish, hull repairs, healing, hands and cargo. Salvage it: leftover silver adds to your score.</div>' +
     '<div><span>Hull \u2014 top</span>The boat\u2019s heartbeat. Storms, blind rocks and untreated leaks wound her; at zero she sinks with the cargo. Beaching and re-sealing her seams heals it.</div>' +
     '<div><span>Spirits \u2014 top</span>Crew mood. Overtaxed and starving men sour, and sour men make bad crossings; fresh food, good omens and rest raise spirits.</div>' +
-    '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg — near 500 sea-miles, a fair crossing 15\u201320 days. Second: up the Volkhov to Holmgard — near 120 miles, 15\u201320 days loaded. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
+    '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg — near 500 sea-miles, a fair crossing 15\u201320 days. Second: upriver to Holmgard — near 120 miles, 15\u201320 days loaded. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
     '<div><span>The landing \u2014 between the legs</span>At Aldeigjuborg the cloth is scored and paid out. The hub screen follows: hire hands from the beach, load furs (2 dirhams, 1 hold unit) or a captive (4 dirhams, 2 hold units), then cast off up the river. The hold fits 12 units.</div>' +
     '<div><span>Captives \u2014 hold and pot</span>A captive is cargo that eats: one ration a day, counted in the day\u2019s mouths. If the pot runs dry, the crew eats first, the captives go hungry, and the crew hears them (spirits drop). At the rapids, walking them round means one may bolt for the woods.</div>' +
     '<div><span>The freeze \u2014 day 32 (Oct 2)</span>Lake Ladoga locks with ice. Arrive after it and the buyer pays half; drag on past day 42 and nobody is left to buy at all.</div>' +
@@ -812,7 +812,7 @@ function chip(c) {
   return '<span class="chip st' + c.hp + '">' + c.name + '</span>';
 }
 function header() {
-  var legName = (S.leg === 2) ? 'Second leg — the Volkhov to Holmgard' : 'First leg — Birka to Aldeigjuborg';
+  var legName = (S.leg === 2) ? 'Second leg — the road to Holmgard' : 'First leg — Birka to Aldeigjuborg';
   var cargo = (S.leg === 2)
     ? '<span>Hold <b>' + HMG.holdUsed(S) + '/' + HMG.HOLD + '</b> · furs <b>' + S.furs + '</b> · captives <b>' + S.captives + '</b></span>'
     : '<span>Provision <b>' + S.silver + '</b> dirhams</span>';
@@ -832,7 +832,7 @@ function viewTitle() {
   var saved = SR.get(KEY);
   var seed = SR.get(KEYS);
   var b = '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.2 — The Crossing &amp; the Volkhov</div>' +
+    '<div class="sub">0.2 — The Crossing</div>' +
     '<div class="card"><p class="hint center">Prototype: the lake crossing, the landing at Aldeigjuborg, and the river road to Holmgard.</p>';
   b += '<button class="primary" onclick="newGame()">A new crossing</button>';
   b += '<button class="small" onclick="showHelp(\'title\')">How to play</button>';
@@ -862,7 +862,7 @@ function resumeGame() {
 function viewIntro() {
   var crew = S.crew.map(function (c) { return c.name + ', ' + c.role; }).join(' · ');
   return '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.2 — The Crossing &amp; the Volkhov</div>' +
+    '<div class="sub">0.2 — The Crossing</div>' +
     '<div class="card contract">' +
     '<h2 class="serif" style="margin-top:0">Birka, the 1st of September</h2>' +
     '<p>The merchant Halvdan weighs three bales of Gotland cloth into the hold of your knarr — half a year of someone\u2019s weaving. He speaks a number, and it is a good one.</p>' +
@@ -875,7 +875,7 @@ function viewIntro() {
     '<div><span>Provision </span>140 rations aboard · ten mouths eat ten a day — fourteen days of food, less if storms stall you</div>' +
     '<div><span>The clock </span>the lake locks with ice about the 2nd of October (day 32) — arrive after it and the buyer pays half</div>' +
     '</div>' +
-    '<p>Aldeigjuborg is where this contract ends. But the water-road does not: behind the buyer\u2019s weighing-house the Volkhov runs south to Holmgard, and furs travel cheap that way. The lake locks about the second of October.</p>' +
+    '<p>Aldeigjuborg is where this contract ends. But the water-road does not: behind the buyer\u2019s weighing-house the river runs south to Holmgard, and furs travel cheap that way. The lake locks about the second of October.</p>' +
     '<p class="mut" style="font-size:13px">Under your hand: you, the skipper, and nine crew — ' + crew + '. Ten mouths eat ten rations a day. A man gone from the oars slows the ship; a man gone from the pot eats nothing. His share of the silver goes back to the merchant\u2019s tally.</p>' +
     '<input id="skippername" class="boardinput" placeholder="Skipper\u2019s name (for the skippers\u2019 board)" maxlength="18" value="' + (SR.get('hmg01name') || '').replace(/"/g, '&quot;') + '"/>' +
     '<button class="primary" onclick="board()">Board the knarr</button>' +
@@ -947,11 +947,11 @@ function viewHub() {
       var daysOf = Math.floor(S.food / m2);
       var cap = S.captives ? ' and ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') : '';
       var rows = '<div class="tally" style="margin:12px 0">' +
-      '<div class="row"><span>The river road</span><span>near 120 miles up the Volkhov \u2014 a loaded knarr makes it in 15\u201420 days</span></div>' +
+      '<div class="row"><span>The river road</span><span>near 120 miles upriver to Holmgard \u2014 a loaded knarr makes it in 15\u201420 days</span></div>' +
       '<div class="row"><span>River mouths to feed</span><span>' + m2 + ' (you, the hands' + cap + ') eat ' + m2 + ' rations a day</span></div>' +
       '<div class="row"><span>Rations aboard</span><span>' + S.food + ' \u2014 about ' + daysOf + ' days of food</span></div>' +
       '</div>';
-      if (daysOf < 15) return rows + '<p class="hint"><b>' + daysOf + ' days of food for a 15\u201420 day river.</b> The Volkhov runs thin over her sandbars after a dry summer, and the Gostinopol rapids above the landing guard the way \u2014 cargo walked round them can cost a captive. Buy fish before you cast off.</p>';
+      if (daysOf < 15) return rows + '<p class="hint"><b>' + daysOf + ' days of food for a 15\u201420 day river.</b> The river runs thin over her sandbars after a dry summer, and the Gostinopol rapids above the landing guard the way \u2014 cargo walked round them can cost a captive. Buy fish before you cast off.</p>';
       return rows + '<p class="mut" style="font-size:13px;margin:0 0 10px">Mind the river all the same: sandbars in the dry season, the Gostinopol rapids above the landing, and the freeze closing the world not far behind.</p>';
     })() +
     '<button onclick="hub(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '— no hands left on the beach' : (S.silver < 5 ? '— purse too light (5 dirhams)' : '— 5 dirhams · ' + hireable[0] + ' waits on the beach')) + '</span></button>' +
@@ -962,7 +962,7 @@ function viewHub() {
     '<button onclick="hub(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">— purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">— 2 dirhams · heals the sick</span>' : '<span class="mut">— 2 dirhams · heals the hurt</span>')) + '</button>' +
     '<button onclick="hub(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats · +spirits</span>') + '</button>' +
     '<button onclick="hub(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '— already feasted' : (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · mead and meat · spirits +2')) + '</span></button>' +
-    '<button class="primary" onclick="hub(\'castoff2\')">Cast off up the Volkhov</button>' +
+    '<button class="primary" onclick="hub(\'castoff2\')">Cast off for Holmgard</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
     '</div>';
 }
@@ -977,7 +977,10 @@ function viewEnd() {
   else if (r.tier === 'ice' || r.tier === 'winterover') scn = villageSVG('ice');
   else scn = villageSVG('market');
   var seed = SR.get(KEYS) || String(S.rngS);
-  var crew = r.crew.map(function (c) { return '<div class="row"><span>' + c.name + '</span><span>' + (c.dead ? 'lost at sea' : 'alive') + '</span></div>'; }).join('');
+  var aliveN = r.crew.filter(function (c) { return !c.dead; }).length;
+  var crew = '<div class="row"><span>Crew</span><span>' + aliveN + ' of ' + r.crew.length + ' alive</span></div>';
+  var lost = r.crew.filter(function (c) { return c.dead; }).map(function (c) { return c.name; });
+  if (lost.length) crew += '<div class="row"><span>Lost</span><span>' + lost.join(', ') + '</span></div>';
   return '<div class="card">' +
     '<div class="scene">' + scn + '</div>' +
     '<h2 class="ev-title serif">' + r.title + '</h2>' +
@@ -999,8 +1002,8 @@ function viewEnd() {
       return '<p class="hint">Scored on the skippers\u2019 board as <b>' + (S.name || 'The skipper') + '</b> \u2014 ' + (r.dest || 'Aldeigjuborg') + '.</p>';
     })() +
     ((r.how === 'arrived' && S.leg === 1)
-      ? '<button class="primary" onclick="toHub()">Continue up the Volkhov</button>' +
-        '<p class="mut" style="font-size:13px;margin:0 0 10px">The river road to Holmgard is a new venture: near 120 miles up the Volkhov, typically 15\u201420 days loaded \u2014 fill the pantry at the landing before you cast off. Hire hands, buy furs or captives, and run the rapids. A run that ends on the river is scored as it stands \u2014 tag Holmgard.</p>'
+      ? '<button class="primary" onclick="toHub()">Continue to Holmgard</button>' +
+        '<p class="mut" style="font-size:13px;margin:0 0 10px">The river road to Holmgard is a new venture: near 120 miles upriver to Holmgard, typically 15\u201420 days loaded \u2014 fill the pantry at the landing before you cast off. Hire hands, buy furs or captives, and run the rapids. A run that ends on the river is scored as it stands \u2014 tag Holmgard.</p>'
       : '') +
     boardHtml(10) +
     '<button class="primary" onclick="newGame()">A new crossing</button>' +
