@@ -23,7 +23,7 @@ chk('help closes back to title', g.inHelp === false);
 // 2) mid-run header carries the help button
 g.newGame(777); g.board();
 const hd = g.header();
-chk('header: How to play button present', hd.indexOf('How to play') >= 0);
+chk('header: help button removed', hd.indexOf('How to play') < 0);
 g.showHelp('game');
 g.closeHelp();
 chk('help closes mid-run without scroll-to-top', g.inHelp === false);
