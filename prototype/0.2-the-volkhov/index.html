@@ -67,6 +67,8 @@
   .chip.dead { border-color: #4a4f57; color: #59606a; text-decoration: line-through; }
   .hint { color: var(--mut); font-size: 13px; margin: 2px 0 10px; }
   .footer { color: #5c6673; font-size: 11.5px; text-align: center; margin-top: 16px; line-height: 1.5; }
+  .footer summary { cursor: pointer; user-select: none; }
+  .footer p { margin: 8px 0 0; }
   .tally { margin: 12px 0 4px; }
   .tally .row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #263140; font-size: 14px; }
   .tally .row span:first-child { color: var(--mut); }
@@ -88,7 +90,7 @@
 <body>
 <div id="wrap">
   <div id="app"><div class="sub">loading…</div></div>
-  <div class="footer">Holmgard and beyond — 0.2 “The Crossing” · prototype · draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The the river\\u2019s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name H\u00f3lmgar\u00f0r is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</div>
+  <div class="footer"><details><summary>Holmgard and beyond — 0.2 “The Crossing” · prototype · notes on the draft</summary><p>draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The river\’s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name Hólmgarðr is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</p></details></div>
 </div>
 <script>
 var HMG = (function () {
@@ -891,7 +893,7 @@ function board() {
   HMG.begin(S); save(); render();
 }
 function choose(i) { HMG.applyChoice(S, i); save(); render(); }
-function mkt(a) { HMG.marketAct(S, a); save(); render(); }
+function mkt(a) { if (a !== 'castoff') keepScroll = true; HMG.marketAct(S, a); save(); render(); }
 function viewDay() {
   var ev = HMG.currentEvent(S);
   var btns = ev.options.map(function (o, i) { return '<button onclick="choose(' + i + ')">' + o + '</button>'; }).join('');
@@ -923,7 +925,7 @@ function toHub() {
   save();
   render();
 }
-function hub(a) { HMG.hubAct(S, a); save(); render(); }
+function hub(a) { if (a !== 'castoff2') keepScroll = true; HMG.hubAct(S, a); save(); render(); }
 function viewHub() {
   var held = S.crew.length;
   var usedH = HMG.holdUsed(S);

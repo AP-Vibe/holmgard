@@ -166,5 +166,12 @@ const uidx = m[1].indexOf('villageSVG');
 ok(m[1].indexOf(' up the Volkhov') < 0 && m[1].indexOf('Cast off for Holmgard') >= 0 && m[1].indexOf('Continue to Holmgard') >= 0, 'user-facing buttons/labels say Holmgard and the river, never the Volkhov name');
 ok(m[1].indexOf('food: 10, morale: 1') >= 0 && m[1].indexOf('morale: 1, progress: 3') >= 0, 'river nets/hearth toned down (food +10, hearth +1 morale, per his round-24 balance note)');
 
+
+// round 25: scroll anchoring + collapsible footer (his notes: screen jumping/freezing in hubs and scoring, footer text hidden by default)
+ok(m[1].indexOf("function hub(a) { if (a !== 'castoff2') keepScroll = true") >= 0, 'hub button taps keep the scroll position (no yank to top), except castoff');
+ok(m[1].indexOf("function mkt(a) { if (a !== 'castoff') keepScroll = true") >= 0, 'market button taps keep the scroll position, except castoff');
+ok(md.indexOf('<details><summary>Holmgard and beyond') >= 0 && md.indexOf('</p></details></div>') >= 0, 'footer notes are collapsible and hidden by default');
+ok(md.indexOf('notes on the draft</summary>') >= 0, 'footer summary line labels the notes');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
