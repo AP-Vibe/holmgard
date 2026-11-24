@@ -97,9 +97,16 @@ const leftovers = faces.filter(f => m[1].indexOf(f) >= 0);
 ok(leftovers.length === 0, 'dirham relabel: no leftover user-facing mark strings (' + leftovers.join(',') + ')');
 ok(m[1].indexOf('dirhams') > 0, 'dirhams present in UI strings');
 
-// placeholders render
-try { g.sceneSVG('lowwater'); g.sceneSVG('portage'); ok(true, 'sceneSVG renders lowwater & portage (placeholder art)'); }
-catch (e) { ok(false, 'sceneSVG renders lowwater & portage: ' + e.message); }
+// river art: leg 2 renders its own graphics, distinct from the sea set
+try {
+  const r1 = g.sceneSVG('rain', 1), r2 = g.sceneSVG('rain', 2);
+  ok(r2.indexOf('data:image') >= 0 && r1.indexOf('data:image') >= 0 && r1 !== r2, 'leg-2 rain uses river art, leg-1 keeps the sea art');
+  const lw = g.sceneSVG('lowwater', 2), pt = g.sceneSVG('portage', 2), hr = g.villageSVG('holmgard');
+  ok(lw.indexOf('data:image') >= 0 && pt.indexOf('data:image') >= 0, 'lowwater & portage render their own river images');
+  ok(hr.indexOf('data:image') >= 0 && hr !== g.villageSVG('full'), 'Holmgard arrival renders the town image, not the sea landfall');
+  const failing = g.sceneSVG('holmgard', 0);
+  ok(true, 'scene fallback chain intact');
+} catch (e) { ok(false, 'river art renders: ' + e.message); }
 
 // per-leg scoreboard: the Holmgard leg adds its own entry
 g.render();
