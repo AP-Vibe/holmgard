@@ -173,5 +173,20 @@ ok(m[1].indexOf("function mkt(a) { if (a !== 'castoff') keepScroll = true") >= 0
 ok(md.indexOf('<details><summary>Holmgard and beyond') >= 0 && md.indexOf('</p></details></div>') >= 0, 'footer notes are collapsible and hidden by default');
 ok(md.indexOf('notes on the draft</summary>') >= 0, 'footer summary line labels the notes');
 
+
+// round 26: leg-2 fail art (river riftwreck/riverice/barloss replace the sea storm/ice images)
+ok(m[1].indexOf('ART2.riftwreck') >= 0 || md.indexOf('riftwreck: \"data:image/jpeg;base64,/') >= 0, 'ART2 carries the three river fail images');
+for (const [how, key] of [['sunk', 'riftwreck'], ['frozen', 'riverice'], ['crewlost', 'barloss']]) {
+  g.newGame(777); g.board();
+  g.S.leg = 2; g.S.phase = 'end';
+  g.S.result = { how: how, dest: 'Holmgard', title: 't', text: 't', days: 33, date: 'Oct 2', crew: [{ name: 'Ketil', dead: false }], deaths: 0, wet: 0, silver: 0, morale: 5, marks: 0, tier: 'fail' };
+  let hh = '';
+  try { hh = g.viewEnd(); } catch (e) { ok(false, 'viewEnd leg2 ' + how + ' threw: ' + e.message); continue; }
+  ok(hh.indexOf('scene-img') >= 0, 'leg-2 ' + how + ' fail renders an image scene (not the SVG fallback)');
+  ok(hh.indexOf('storm') < 0, 'leg-2 ' + how + ' fail does not fall back to the sea storm image');
+}
+ok(m[1].indexOf("if (S && S.leg === 2") >= 0 && m[1].indexOf("sceneSVG('riftwreck', 2)") >= 0, 'viewEnd fail-scene mapping is leg-aware');
+ok(md.indexOf('ART2.riftwreck = "data:image/jpeg;base64,/') >= 0 && md.indexOf('function sceneSVG(id, leg)') >= 0, 'fail images embedded in ART2 and sceneSVG leg signature present');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
