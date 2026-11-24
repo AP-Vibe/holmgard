@@ -399,6 +399,7 @@ function boardSave(name) {
   SR.set(KEYB, JSON.stringify(b));
   S.scoreSaved = true;
   save();
+  keepScroll = true;  // don't yank the view to the top when the score lands
   render();
 }
 function boardHtml(limit) {
@@ -407,10 +408,32 @@ function boardHtml(limit) {
   var rows = b.slice(0, limit).map(function (e, i) {
     return '<div class="row"><span>' + (i + 1) + '. ' + e.n + '</span><span>' + e.s + ' <span class="mut">— day ' + e.d + ', ' + e.m + ' marks</span></span></div>';
   }).join('');
-  return '<div class="tally" style="margin-top:10px"><div class="row big"><span>Skippers\u2019 board</span><span></span></div>' + rows + '</div>';
+  return '<div class="tally" style="margin-top:10px"><div class="row big"><span>Skippers\u2019 board — all crossings, every fate</span><span></span></div>' + rows + '</div>';
 }
 var S = null;
 var inTitle = true;
+var inHelp = false;
+var helpFrom = 'title';
+var keepScroll = false;
+
+function showHelp(from) { inHelp = true; helpFrom = from || (S && S.phase && S.phase !== 'end' ? 'game' : 'title'); render(); }
+function closeHelp() { inHelp = false; if (helpFrom === 'game') { keepScroll = true; } render(); }
+function viewHelp() {
+  return '<div class="card contract">' +
+    '<h2 class="serif" style="margin-top:0">How to read the screen</h2>' +
+    '<div class="terms">' +
+    '<div><span>Rations \u2014 top left</span>Food aboard. Your company \u2014 ten mouths when everyone lives \u2014 eats every day. When the pot runs dry the crew weakens first, then dies one by one. Smoking fish on a skerry or buying from locals refills it. A dead man eats nothing.</div>' +
+    '<div><span>Silver \u2014 top</span>Provision money from the merchant. It buys fish, hull repairs and healing on the way. Salvage it on delivery: leftover silver adds to your score.</div>' +
+    '<div><span>Hull \u2014 top</span>The boat\u2019s heartbeat. Storms, blind rocks and untreated leaks wound her; at zero she sinks with the cargo. Beaching and re-sealing her seams heals it.</div>' +
+    '<div><span>Spirits \u2014 top</span>Crew mood. Overtaxed and starving men sour, and sour men make bad crossings; fresh food, good omens and rest raise spirits.</div>' +
+    '<div><span>Journey length \u2014 the long bar</span>Birka to Aldeigjuborg. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
+    '<div><span>The freeze \u2014 day 32 (Oct 2)</span>Lake Ladoga locks with ice. Arrive after it and the buyer pays half; drag on past day 42 and nobody is left to buy at all.</div>' +
+    '<div><span>Names \u2014 chips under the bar</span>Your crew. Each is a person who lives or dies by your choices, and each death costs 10 marks of the settlement and slows the boat.</div>' +
+    '</div>' +
+    '<p class="mut" style="font-size:13px">Score at the journey\u2019s end: marks \u00d7 100 + living crew \u00d7 50 + every day ahead of the freeze \u00d7 25 + silver in hand \u00d7 20.</p>' +
+    '<button class="primary" onclick="closeHelp()">Back</button>' +
+    '</div>';
+}
 
 function loadSlot() {
   var raw = SR.get(KEY);
