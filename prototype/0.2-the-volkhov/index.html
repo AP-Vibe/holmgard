@@ -575,12 +575,13 @@ function boardHtml(limit) {
 }
 /* ---------- cloud board (Google Apps Script backend; degrades gracefully without it) ---------- */
 var KEYC = 'hmg01cloud';
-function cloudUrl() { return (SR.get(KEYC) || '').trim(); }
+var CLOUDDEFAULT = 'https://script.google.com/macros/s/AKfycbxi-27DJ3YxDunf5qX2EWrSi0HLxQY8Bs_vR_v54qCcs8cuEN3_v3Ll3c0to9MVwwVIcQ/exec';  // his deployment, round 18b — update in place, never a new deployment
+function cloudUrl() { return (SR.get(KEYC) || CLOUDDEFAULT).trim(); }
 function cloudSet() {
   var el = document.getElementById('cloudurl');
   if (!el) return;
   SR.set(KEYC, el.value.trim());
-  window.cloudMsg = cloudUrl() ? 'Board address saved. Pull or push when you like.' : 'Board address cleared.';
+  window.cloudMsg = el.value.trim() ? 'Board address saved. Pull or push when you like.' : 'Custom address cleared — back to the built-in board address.';
   render();
 }
 function cloudRows() {

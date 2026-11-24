@@ -188,5 +188,16 @@ for (const [how, key] of [['sunk', 'riftwreck'], ['frozen', 'riverice'], ['crewl
 ok(m[1].indexOf("if (S && S.leg === 2") >= 0 && m[1].indexOf("sceneSVG('riftwreck', 2)") >= 0, 'viewEnd fail-scene mapping is leg-aware');
 ok(md.indexOf('ART2.riftwreck = "data:image/jpeg;base64,/') >= 0 && md.indexOf('function sceneSVG(id, leg)') >= 0, 'fail images embedded in ART2 and sceneSVG leg signature present');
 
+
+// round 28: deployed cloud board baked in as the DEFAULT address (round 18b change, shipped late)
+ok(m[1].indexOf('var CLOUDDEFAULT') >= 0 && m[1].indexOf('function cloudUrl() { return (SR.get(KEYC) || CLOUDDEFAULT).trim(); }') >= 0, 'his deployed /exec URL is the built-in default cloud-board address');
+ok(m[1].indexOf('back to the built-in board address') >= 0, 'clearing the custom address falls back to the built-in one (message says so)');
+// live override still works: slot value wins over default
+g.newGame(777); g.board();
+global.localStorage.setItem('hmg01cloud', 'https://example.invalid/exec');
+ok(g.cloudUrl && g.cloudUrl() === 'https://example.invalid/exec', 'a custom address in the slot overrides the built-in default');
+global.localStorage.removeItem('hmg01cloud');
+ok(g.cloudUrl() === g.CLOUDDEFAULT, 'with no custom address the built-in default is used');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
