@@ -179,7 +179,7 @@ ok(m[1].indexOf('ART2.riftwreck') >= 0 || md.indexOf('riftwreck: \"data:image/jp
 for (const [how, key] of [['sunk', 'riftwreck'], ['frozen', 'riverice'], ['crewlost', 'barloss']]) {
   g.newGame(777); g.board();
   g.S.leg = 2; g.S.phase = 'end';
-  g.S.result = { how: how, dest: 'Holmgard', title: 't', text: 't', days: 33, date: 'Oct 2', crew: [{ name: 'Ketil', dead: false }], deaths: 0, wet: 0, silver: 0, morale: 5, marks: 0, tier: 'fail' };
+  g.S.result = { how: how, dest: 'Holmgard', title: 't', text: 't', days: 33, date: 'May 11', crew: [{ name: 'Ketil', dead: false }], deaths: 0, wet: 0, silver: 0, morale: 5, marks: 0, tier: 'fail' };
   let hh = '';
   try { hh = g.viewEnd(); } catch (e) { ok(false, 'viewEnd leg2 ' + how + ' threw: ' + e.message); continue; }
   ok(hh.indexOf('scene-img') >= 0, 'leg-2 ' + how + ' fail renders an image scene (not the SVG fallback)');
@@ -198,6 +198,14 @@ global.localStorage.setItem('hmg01cloud', 'https://example.invalid/exec');
 ok(g.cloudUrl && g.cloudUrl() === 'https://example.invalid/exec', 'a custom address in the slot overrides the built-in default');
 global.localStorage.removeItem('hmg01cloud');
 ok(g.cloudUrl() === g.CLOUDDEFAULT, 'with no custom address the built-in default is used');
+
+
+// round 30: the spring clock (his call: run starts early April from Birka; zero winters; convoy framing)
+ok(g.HMG.dateStr(1) === 'Apr 10' && g.HMG.dateStr(32) === 'May 11' && g.HMG.dateStr(44) === 'May 23' && g.HMG.dateStr(60) === 'Jun 8', 'day 1 = Apr 10; FREEZE day 32 = May 12, WINTER day 44 = May 24');
+ok(m[1].indexOf('The season slips away') >= 0 && m[1].indexOf('The convoys are gone') >= 0 && m[1].indexOf('The landing has emptied') >= 0, 'late/fail endings recast to the convoy clock');
+ok(m[1].indexOf('leave the landing about the 11th of May') >= 0 && m[1].indexOf('The convoy window') >= 0, 'intro and help state the convoy window, not the freeze');
+ok(m[1].indexOf('even the spring flood ran thin') >= 0, 'low-water event reframed to a thin spring melt (May calendar)');
+ok(m[1].indexOf('Oct') < 0 && m[1].indexOf('Sept ') < 0, 'no autumn dates remain in the game script');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);

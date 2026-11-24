@@ -16,7 +16,7 @@ const titleHtml = g.viewTitle();
 chk('title: How to play button present', titleHtml.indexOf('How to play') >= 0);
 g.showHelp('title');
 chk('help view renders', g.viewHelp().indexOf('How to read the screen') >= 0);
-chk('help covers the four key UI elements', ['Rations', 'Hull', 'Spirits', 'Journey length', 'freeze', 'Score'].every(k => g.viewHelp().indexOf(k) >= 0));
+chk('help covers the four key UI elements', ['Rations', 'Hull', 'Spirits', 'Journey length', 'convoy window', 'Score'].every(k => g.viewHelp().indexOf(k) >= 0));
 g.closeHelp();
 chk('help closes back to title', g.inHelp === false);
 
