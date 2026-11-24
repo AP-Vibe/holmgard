@@ -252,5 +252,85 @@ g.S.furs = 9; g.HMG.hubAct(g.S, 'freight');
 ok(g.S.freight === 3 && g.HMG.holdUsed(g.S) === 12, 'freight cannot exceed the 12-unit hold (9 furs + 3 freight blocks a 4th)');
 const r2 = g.HMG.ending2(g.S);
 ok(r2.marks === 9 * 5 + 3 * 2 && r2.text.indexOf('6 dirhams of freight silver') >= 0, 'settlement pays 2 per freight unit and says so (9 fur x5 + 3 freight x2 = 51)');
+
+// round 38: leg-3 skeleton — the road to Miklagard (build round 1)
+ok(g.HMG.dateStr(82) === 'Jun 30' && g.HMG.dateStr(113) === 'Jul 31' && g.HMG.dateStr(138) === 'Aug 25' && g.HMG.dateStr(150) === 'Sep 6', 'the calendar runs the whole season Apr to Sep');
+ok(g.HMG.FLEET === 90 && g.HMG.SEACLOSE === 138, 'gate constants: the Kiev fleet Jul 8, the sea closes Aug 25');
+ok(m[1].indexOf('goSouth()') >= 0 && m[1].indexOf('The road does not end here') >= 0, 'arriving Holmgard offers the southbound road');
+ok(m[1].indexOf('The southern road') >= 0 && m[1].indexOf('pays at Kiev') >= 0, 'help card explains the third leg');
+
+function run3Road(setup) {
+  g.newGame(777);
+  g.S.silver = 60; g.S.food = 300; g.S.hull = 100; g.S.furs = 2; g.S.captives = 1; g.S.freight = 0; g.S.day = 50;
+  if (setup) setup(g.S);
+  g.HMG.begin3(g.S);
+  for (var k3 = 0; k3 < 4; k3++) {
+    g.S.progress = 99; g.S.pending = { id: 'fair' };
+    g.HMG.applyChoice(g.S, 0);
+    if (g.S.phase === 'hub3') g.HMG.hub3Act(g.S, 'castoff3');
+  }
+}
+
+// freight loads at Holmgard and pays at Kiev
+g.newGame(777);
+g.S.silver = 60; g.S.food = 300; g.S.hull = 100; g.S.furs = 2; g.S.captives = 1; g.S.freight = 0; g.S.day = 50;
+g.HMG.begin3(g.S);
+g.HMG.hub3Act(g.S, 'freight'); g.HMG.hub3Act(g.S, 'freight');
+ok(g.S.freight === 2, 'freight bales load at the Holmgard hub');
+g.HMG.hub3Act(g.S, 'castoff3');
+g.S.progress = 99; g.S.pending = { id: 'fair' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.phase === 'hub3' && g.S.hub === 'gnezdovo' && g.S.sub === 2, 'subleg 1 ends at the Gnezdovo hub');
+g.HMG.hub3Act(g.S, 'freight');
+ok(g.S.freight === 3, 'freight also loads at Gnezdovo');
+g.HMG.hub3Act(g.S, 'castoff3');
+g.S.progress = 99; g.S.pending = { id: 'fair' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.hub === 'kiev' && g.S.silver === 66 && g.S.freight === 0 && g.S.flags.freightPaid === 3 && !g.S.flags.lateFleet, 'Kiev settles 3 freight bales at 2 apiece (+6) and the fleet is caught');
+const kievResist = g.S.silver;
+g.HMG.hub3Act(g.S, 'freight');
+ok(g.S.freight === 0, 'no freight contracts at Kiev itself');
+for (var k3b = 0; k3b < 2; k3b++) {
+  if (g.S.phase === 'hub3') g.HMG.hub3Act(g.S, 'castoff3');
+  g.S.progress = 99; g.S.pending = { id: 'fair' };
+  g.HMG.applyChoice(g.S, 0);
+}
+ok(g.S.phase === 'end' && g.S.result && g.S.result.dest === 'Miklagard' && g.S.result.marks === 2 * 5 + 1 * 12, 'the road ends at Miklagard scoring furs 5 and captives 12 (22 mark)');
+ok(g.S.result.text.indexOf('3 freight bales settled at Kiev') >= 0, 'the finale text recounts the freight settlement');
+
+// late fleet: arrive Kiev after day 90 -> you came south behind the June fleet
+run3Road(function (st) { st.lateFleetTest = true; });
+ok(g.S.flags.lateFleet === false, 'sanity: day-50 arrival catches the fleet');
+
+// late fleet, positively: arrive Kiev after day 90 -> the flag trips and the finale remembers it
+g.newGame(777);
+g.S.silver = 60; g.S.food = 300; g.S.hull = 100; g.S.furs = 0; g.S.captives = 0; g.S.day = 50;
+g.HMG.begin3(g.S);
+g.HMG.hub3Act(g.S, 'castoff3');
+g.S.day = 95; g.S.progress = 99; g.S.pending = { id: 'fair' };
+g.HMG.applyChoice(g.S, 0);   // arrives Gnezdovo
+g.HMG.hub3Act(g.S, 'castoff3');
+g.S.day = 96; g.S.progress = 99; g.S.pending = { id: 'fair' };
+g.HMG.applyChoice(g.S, 0);   // arrives Kiev too late
+ok(g.S.flags.lateFleet === true && g.S.hub === 'kiev', 'arriving Kiev after Jul 8 trips the late-fleet flag');
+g.HMG.hub3Act(g.S, 'castoff3');
+g.S.progress = 99; g.S.pending = { id: 'fair' };
+g.HMG.applyChoice(g.S, 0);
+g.HMG.hub3Act(g.S, 'castoff3');
+g.S.progress = 99; g.S.pending = { id: 'fair' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.result && g.S.result.title === 'Miklagard at last' && g.S.result.text.indexOf('behind the June fleet') >= 0, 'the finale notes you came south behind the June fleet (no perfect tier)');
+
+// hard gates: Cherson past day 138 -> the sea closes
+g.newGame(777);
+g.S.silver = 60; g.S.food = 300; g.S.hull = 100; g.S.furs = 0; g.S.captives = 0; g.S.day = 140;
+g.HMG.begin3(g.S);
+for (var k3c = 0; k3c < 3; k3c++) {
+  g.HMG.hub3Act(g.S, 'castoff3');
+  g.S.day = 141;   // the slow road south
+  g.S.progress = 99; g.S.pending = { id: 'fair' };
+  g.HMG.applyChoice(g.S, 0);
+}
+ok(g.S.phase === 'end' && g.S.result.title === 'The sea closes', 'arriving Cherson after the summons stops fails with The sea closes');
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
