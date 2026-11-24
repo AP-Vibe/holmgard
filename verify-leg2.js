@@ -234,5 +234,23 @@ ok(/function board\(\) \{[\s\S]*?el\.blur/m.test(m[1]), 'boarding blurs the name
 // round 34: iOS input zoom (his report: typing the skipper name zooms the screen in and sideways, and it STAYS that way)
 ok(/input\.boardinput \{[\s\S]*?font-size: 16px/.test(md), 'board inputs are 16px — iOS Safari auto-zooms any input below 16px and never zooms back out');
 ok(!/(input|input\.boardinput) \{[^}]*font-size: 1[0-5]px/.test(md), 'no input CSS ends up below 16px');
+
+// round 35: freight contracts at the landing (his spec: other merchants' goods transport, paid 2 dirhams per cargo space)
+ok(m[1].indexOf("freight: 0,") >= 0, 'new runs start with an empty freight Manifest');
+ok(/function holdUsed\(s\) \{ return s\.furs \+ s\.captives \* 2 \+ \(s\.freight \|\| 0\); \}/.test(m[1]), 'freight bales count against the 12-unit hold');
+ok(m[1].indexOf("a === 'freight'") >= 0 && m[1].indexOf("s.freight = (s.freight || 0) + 1") >= 0, 'the hub has a take-a-freight-bale action');
+ok(/marks: s\.furs \* 5 \+ s\.captives \* 12 \+ \(s\.freight \|\| 0\) \* 2/.test(m[1]), 'Holmgard settlement pays 2 dirhams per freight unit');
+ok(m[1].indexOf("freight silver, counted on the spot") >= 0, 'settlement text spells out the freight payment');
+ok(m[1].indexOf("Take a merchant") >= 0 && m[1].indexOf("pays 2 dirhams at Holmgard") >= 0, 'hub button states the freight terms');
+// runtime: freight fills the hold, stacks, and pays at settlement
+g.newGame(777);
+g.S.silver = 30; g.S.furs = 0; g.S.captives = 0; g.S.phase = 'hub';
+g.HMG.hubAct(g.S, 'freight'); g.HMG.hubAct(g.S, 'freight'); g.HMG.hubAct(g.S, 'freight');
+ok(g.S.freight === 3, 'each take-a-bale press adds one freight unit');
+ok(g.HMG.holdUsed(g.S) === 3, 'freight occupies hold space (crowds out furs)');
+g.S.furs = 9; g.HMG.hubAct(g.S, 'freight');
+ok(g.S.freight === 3 && g.HMG.holdUsed(g.S) === 12, 'freight cannot exceed the 12-unit hold (9 furs + 3 freight blocks a 4th)');
+const r2 = g.HMG.ending2(g.S);
+ok(r2.marks === 9 * 5 + 3 * 2 && r2.text.indexOf('6 dirhams of freight silver') >= 0, 'settlement pays 2 per freight unit and says so (9 fur x5 + 3 freight x2 = 51)');
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
