@@ -98,7 +98,7 @@ ok(leftovers.length === 0, 'dirham relabel: no leftover user-facing mark strings
 ok(m[1].indexOf('the channel ran two fathoms') >= 0, 'lowwater text reads depth as channel, not "marks"');
 
 // round 21: leg-duration briefing (his note: "before journey begins there should be info on how much it lasts on average")
-ok(m[1].indexOf('a fair crossing takes 14') >= 0, 'intro states typical crossing duration (14-20 days)');
+ok(m[1].indexOf('a fair crossing takes 15') >= 0, 'intro states typical crossing duration (15-20 days, adjusted up)');
 ok(m[1].indexOf('140 rations aboard') >= 0 && m[1].indexOf('fourteen days of food') >= 0, 'intro states rations vs mouths (140 / ten a day)');
 ok(m[1].indexOf('days loaded') >= 0 && m[1].indexOf('near 120 miles up the Volkhov') >= 0, 'hub states the river leg typical duration and distance');
 ok(m[1].indexOf('days of food') >= 0 && m[1].indexOf('rations a day') >= 0, 'hub shows rations-days math (rations / river mouths)');
@@ -109,7 +109,11 @@ g.newGame(777); g.board();
 g.S.leg = 2; g.S.phase = 'hub'; g.S.furs = 2; g.S.captives = 1; g.S.food = 140; g.S.crew.forEach(c => c.dead = false);
 const hubHtml = g.viewHub();
 ok(hubHtml.indexOf('Rations aboard</span><span>140') >= 0 && hubHtml.indexOf('about 12 days of food') >= 0, 'hub reports ~12 days of food for 140 rations / 11 river mouths (skipper + 9 hands + 1 captive)');
-ok(hubHtml.indexOf('Buy fish before you cast off') < 0, 'no under-supplied warning when food covers the leg');
+ok(hubHtml.indexOf('Buy fish before you cast off') >= 0, '140 rations now warn: 12 days is thin for an honest 15-20 day river');
+ok(hubHtml.indexOf('15\u201420 days') >= 0, 'hub river briefing states honest 15-20 day range');
+g.S.food = 170;
+const okHtml = g.viewHub();
+ok(okHtml.indexOf('Buy fish before you cast off') < 0, 'no under-supplied warning when food covers an honest 15+ days');
 g.S.food = 55;
 const thinHtml = g.viewHub();
 ok(thinHtml.indexOf('Buy fish before you cast off') >= 0, 'under-supplied pantry (55 rations / 11 mouths) warns to buy fish');
@@ -135,6 +139,22 @@ ok(b2.length === 2 && b2.some(e => e.g === 'Holmgard') && b2.some(e => e.g === '
 // state resets cleanly
 g.newGame(777); g.board();
 ok(true, 'new run boots after a Holmgard run (state reset clean)');
+// round 22: feast action + river events (his note: more options to raise spirits; the river deck had no food event)
+ok(m[1].indexOf('Throw a feast for the crew') >= 0, 'hub offers a feast action (spirits +2, one per landing)');
+g.newGame(777); g.board();
+g.S.leg = 2; g.S.phase = 'hub'; g.S.morale = 4; g.S.silver = 10;
+const sv = g.S.morale, ssv = g.S.silver;
+g.HMG.hubAct(g.S, 'feast');
+ok(g.S.morale === Math.min(10, sv + 2) && g.S.silver === ssv - 2 && g.S.flags.feasted === true, 'feast raises morale +2, costs 2 dirhams, sets the flag');
+const mv = g.S.morale;
+g.HMG.hubAct(g.S, 'feast');
+ok(g.S.morale === mv && g.S.silver === ssv - 2, 'feast is once per landing (second call rejected)');
+ok(g.viewHub().indexOf('already feasted') >= 0, 'feast button shows disabled reason when already feasted');
+g.HMG.hubAct(g.S, 'castoff2');
+ok(g.S.leg === 2 && g.S.flags.feasted === false, 'castoff2 resets the feast flag for the next landing');
+ok(m[1].indexOf('The quiet water below the rift') >= 0, 'river deck has the nets food event');
+ok(m[1].indexOf('A night camp on the shingle') >= 0, 'river deck has the hearth spirits event');
+ok(m[1].indexOf('typically 15') >= 0 && m[1].indexOf('days loaded') >= 0 && m[1].indexOf('fill the pantry at the landing') >= 0, 'leg-1 end screen Continue note states the honest river duration');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
