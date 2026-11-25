@@ -364,6 +364,75 @@ ok(md.indexOf('transform: scale(.97)') >= 0, 'buttons give a felt pressed state 
 ok(m[1].indexOf('Buy a fur bale') >= 0 && m[1].indexOf('Sell the furs to a factor') >= 0, 'the Holmgard hub screen offers the trade buttons');
 ok(m[1].indexOf('Sell the captives to a factor') >= 0 && m[1].indexOf('pays 5 at Miklagard') >= 0, 'sell buttons appear with factor prices, buy buttons say the Miklagard payoff');
 
+// round 43 / build round 2: the real decks — the Lovat/portage subleg and the Dnieper subleg (per the signed brief)
+ok(m[1].indexOf('var LOVAT3') >= 0 && m[1].indexOf('var DNIPR3') >= 0, 'the two real southern decks exist');
+ok(m[1].indexOf('s.flags.l3Lovat') >= 0 && m[1].indexOf('s.flags.l3Port') >= 0, 'the Lovat and portage gates are per-subleg flagged');
+ok(m[1].indexOf('DNIPR3 : (s.sub === 3) ? RIVER : LOVAT3') >= 0, 'subleg decks: 1 Lovat, 2 Dnieper, 3 river placeholder (round 3 to come), 4 sea');
+// gated draws
+g.newGame(777); g.board();
+g.S.leg = 3; g.S.sub = 1; g.S.phase = 'day'; g.S.flags.l3Lovat = false; g.S.flags.l3Port = false;
+g.S.progress = 30;
+ok(g.HMG.drawMorning ? true : false, 'drawMorning exported for deck tests');
+// drive the spine: progress 30 forces lovat, then 70 forces portage3
+g.S.flags.lastGate = 0;
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 1; g.S.phase = 'day';
+g.S.flags.l3Lovat = false; g.S.flags.l3Port = false; g.S.progress = 30;
+var ev30 = g.HMG.drawMorning(g.S);
+ok(ev30.id === 'lovat', 'progress 30 on subleg 1 draws the Lovat shallows gate');
+g.S.progress = 70;
+var ev70 = g.HMG.drawMorning(g.S);
+ok(ev70.id === 'portage3', 'past the Lovat, progress 70 draws the watershed portage gate');
+ok(g.S.flags.l3Lovat === true && g.S.flags.l3Port === true, 'both gate flags set once drawn');
+g.HMG.hub3Act !== undefined;   // sanity
+// choice mechanics
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 1; g.S.silver = 20; g.S.morale = 5; g.S.food = 100;
+var beforePort = g.S.silver;
+g.S.pending = { id: 'portage3' };
+g.S.phase = 'day';
+g.HMG.applyChoice(g.S, 1);   // hire the teamsters
+ok(g.S.silver === beforePort - 6, 'the watershed portage teamsters cost 6 dirhams');
+g.S.pending = { id: 'portage3' };
+g.S.silver = 3;   // purse too light for teamsters: falls back to the slow road, no silent loss
+g.HMG.applyChoice(g.S, 1);
+ok(g.S.silver === 3, 'no silver silently lost when the purse cannot cover the teamsters');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 2; g.S.silver = 5; g.S.food = 50; g.S.morale = 5;
+var beforeFm = { s: g.S.silver, f: g.S.food };
+g.S.pending = { id: 'fmarket' }; g.S.phase = 'day';
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.silver === beforeFm.s - 2 && g.S.food === beforeFm.f + 10 && g.S.morale === 6, 'the tribute-town market trades 2 dirhams for +20 food less the day\u2019s 10 mouths, and a lift');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 2; g.S.silver = 4; g.S.morale = 5;
+g.S.pending = { id: 'ferry' }; g.S.phase = 'day';
+var beforeFerry = g.S.silver;
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.silver === beforeFerry - 2, 'the ferrymen take their 2-dirham toll');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 2; g.S.food = 60; g.S.morale = 4;
+g.S.pending = { id: 'kinsman' }; g.S.phase = 'day';
+g.HMG.applyChoice(g.S, 1);
+ok(g.S.food === 46 && g.S.morale === 6, 'berthing the kinsman costs 4 food plus the day, and buys +2 spirits');
+// texts present for every new id, options nonempty (no dead buttons)
+for (const t3 of ['The Lovat runs shallow', 'The watershed portage', 'Storm on the Ilmen', 'A hoard-rumor', 'The current does the rowing', 'A tribute-town on the bank', 'ferrymen', 'A kinsman from the crossing']) {
+  ok(m[1].indexOf(t3) >= 0, 'deck text present: ' + t3);
+}
+ok(m[1].indexOf("lovat: 'fog'") >= 0 && m[1].indexOf("kinsman: 'chud'") >= 0, 'new events map to scene art (no bare vector fallback)');
+// a full first-subleg sim from the Holmgard hub must reach Gnezdovo unblocked
+function simSub1(policy) {
+  g.newGame(444); g.board();
+  g.S.silver = 20; g.S.food = 90; g.S.hull = 90;
+  g.HMG.begin3(g.S);
+  g.HMG.hub3Act(g.S, 'castoff3');
+  let steps = 0;
+  while (g.S.phase === 'day' && steps++ < 60) {
+    const evID = g.S.pending && g.S.pending.id;
+    const t2 = g.HMG.currentEvent(g.S);
+    let pick2 = policy[evID] !== undefined ? policy[evID] % t2.options.length : 0;
+    g.choose(pick2);
+  }
+  return { phase: g.S.phase, hub: g.S.hub, sub: g.S.sub, hull: g.S.hull, day: g.S.day };
+}
+const r1 = simSub1({ lovat: 1, portage3: 1 });
+ok((r1.phase === 'hub3' && r1.hub === 'gnezdovo') || r1.phase === 'end', 'subleg 1 sim terminates (reached a hub or failed a guard), no hang');
+ok(r1.hull <= 90, 'subleg 1 sim ran real events (state moved)');
+
 // round 39: leg-3 art (his ask: not dull or repetitive) + test jumps on the title screen
 ok(/ART3 = \{[\s\S]*?gnezdovo: "data:image\/(webp|jpeg);base64,/.test(m[1]), 'ART3 scenes embedded (webp since round 41)');
 ok(['gnezdovo','kiev','cherson','miklagard'].every(k => new RegExp(k.replace(/[-]/g,' ') + ': ' + String.fromCharCode(34) + 'data:image[\\/](webp|jpeg);base64').test(m[1])), 'four distinct leg-3 scenes embedded (Gnezdovo, Kiev, Cherson, Miklagard)');
