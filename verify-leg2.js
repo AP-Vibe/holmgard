@@ -193,7 +193,7 @@ ok(md.indexOf('ART2.riftwreck = "data:image/webp;base64,') >= 0 && md.indexOf('f
 ok(m[1].indexOf('script.google.com') < 0, 'no Apps Script URL anywhere (the dead GAS deployment is gone)');
 ok(['cloudHtml','cloudPush','cloudPull','cloudUrl','CLOUDDEFAULT'].every(function (x) { return m[1].indexOf(x) < 0; }), 'no GAS cloud-board code remains in the game');
 ok(m[1].indexOf("var BOARDAPI = 'https://") >= 0, 'BOARDAPI filled: round 49 landed the shared-board endpoint (was an empty stub in round 48)');
-ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 29, 'the 29 webp scenes survived the GAS surgery');
+ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 36, 'the 36 webp scenes survived the GAS surgery');
 
 
 // round 30: the spring clock (his call: run starts early April from Birka; zero winters; convoy framing)
@@ -584,9 +584,9 @@ ok(m[1].indexOf('rapids1: \'seals\'') >= 0 && m[1].indexOf('parley: \'chud\'') >
 
 // round 47 / art diet: all art re-encoded to 480px webp q62, 821KB -> 589KB, no jpeg blobs left
 ok(m[1].indexOf('data:image/jpeg') < 0, 'no jpeg data URIs remain (the gnezdovo and cherson stragglers converted)');
-ok(m[1].split('data:image/webp;base64,').length - 1 === 29, 'all 29 embedded scenes are webp');
+ok(m[1].split('data:image/webp;base64,').length - 1 === 36, 'all 36 embedded scenes are webp');
 const sz = require('fs').statSync('canvases/holmgard-01-the-crossing/CANVAS.md').size;
-ok(sz < 600000 && sz > 400000, 'canvas ' + sz + ' bytes: diet landed in the 400-600KB window');
+ok(sz < 800000 && sz > 400000, 'canvas ' + sz + ' bytes: the post-round-52 window (seven event scenes added on top of the dieted set)');
 
 // round 48 / PWA: manifest link + service-worker registration, game installs and plays offline after first load
 ok(m[0] && md.indexOf('<link rel="manifest" href="./manifest.webmanifest" />') >= 0, 'manifest linked in the head');
@@ -627,6 +627,13 @@ ok(g.S.greek === 4 && g.S.silver === 0, 'the last dirhams can go into the fourth
 const fin = g.HMG.ending3(g.S);
 ok(fin.silver === 24 && fin.text.indexOf('Greek houses takes the 4 bales') >= 0, 'the finale pays the factor\u2019s 6 a bale: 24 dirhams to the purse, card text included');
 global.localStorage.removeItem('hmg01save');
+
+// round 52 / his batch: the southern route stops wearing Baltic art - full leg-3 event art set
+const art3block = m[1].match(/var ART3EV = \{[\s\S]*?\n\};/)[0];
+['rapids1','nenasytets','parley','portage3','khortytsia','delta','summons','escort','cstorm','mesembria','statherios'].forEach(function (k) {
+  ok(art3block.indexOf(k + ': "data:image/webp;base64,') >= 0, 'ART3EV carries its own art for ' + k);
+});
+ok(m[1].indexOf("(leg === 3 && ART3EV[id]) ? ev3Img(id)") >= 0, 'leg-3 scenes prefer ART3EV before the leg-1 fallback');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
