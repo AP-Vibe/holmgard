@@ -508,6 +508,68 @@ const rsafe = simSub3({ rapids1: 2, nenasytets: 0, parley: 0, delta: 1 });
 ok(rsafe.phase === 'hub3' && rsafe.hub === 'cherson' || rsafe.phase === 'end', 'the rapids road sim terminates at Cherson (or a guard), no hang');
 ok(rsafe.hull < 85 || rsafe.day > 90, 'subleg 3 sim ran real events (state moved)');
 
+// round 45 / build round 4: the Greek sea run — summons, escort, coastal storm, Mesembria, St Aitherios
+ok(m[1].indexOf("var SEA3 = [ { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' }, { id: 'cstorm' } ]") >= 0, 'the real sea deck replaces the placeholder (aurora stays on the river leg only — no midnight sky on an August Greek sea)');
+ok(m[1].indexOf('l3Summ') >= 0 && m[1].indexOf('l3Esc') >= 0 && m[1].indexOf('l3Mes') >= 0 && m[1].indexOf('l3Aith') >= 0, 'the four sea-run gates are flagged per-subleg');
+// forced draws down the spine
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 4; g.S.phase = 'day';
+g.S.flags.l3Summ = false; g.S.flags.l3Esc = false; g.S.flags.l3Mes = false; g.S.flags.l3Aith = false;
+g.S.progress = 5;
+ok(g.HMG.drawMorning(g.S).id === 'summons', 'the summons wait opens the sea run');
+g.S.progress = 35;
+ok(g.HMG.drawMorning(g.S).id === 'escort', 'the dromons come out at a third of the crossing');
+g.S.progress = 60;
+ok(g.HMG.drawMorning(g.S).id === 'mesembria', 'the Mesembria landfall draws at 60');
+g.S.progress = 82;
+ok(g.HMG.drawMorning(g.S).id === 'statherios', 'St Aitherios draws at 82, the last cape');
+ok(g.S.flags.l3Summ && g.S.flags.l3Esc && g.S.flags.l3Mes && g.S.flags.l3Aith, 'all four sea gates set once drawn');
+// choice mechanics
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 4; g.S.phase = 'day';
+g.S.silver = 8; g.S.morale = 5;
+g.S.pending = { id: 'summons' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.silver === 5, 'greasing the clerk costs his 3 dirhams');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 4; g.S.phase = 'day';
+g.S.silver = 3; g.S.morale = 5;
+g.S.pending = { id: 'escort' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.morale === 6, 'falling in with the escort lifts the crew');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 4; g.S.phase = 'day';
+g.S.silver = 6; g.S.hull = 70; g.S.food = 60;
+g.S.pending = { id: 'mesembria' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.silver === 4 && g.S.hull === 80, 'the Mesembria landfall mends hull (+10) for 2 dirhams');
+ok(g.S.hull === 80, 'Mesembria hull math holds (+10 less nothing, capped)');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 4; g.S.phase = 'day';
+g.S.hull = 60;
+g.S.pending = { id: 'statherios' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.hull === 72, 'the St Aitherios re-rig buys hull back (+12)');
+// texts + art + help
+for (const t5 of ['The summons wait', 'The dromons come out', 'A Black Sea storm', 'The Mesembria landfall', 'St Aitherios on the cape']) {
+  ok(m[1].indexOf(t5) >= 0, 'sea text present: ' + t5);
+}
+ok(m[1].indexOf("summons: 'fog'") >= 0 && m[1].indexOf("statherios: 'seals'") >= 0, 'sea events map to scene art');
+ok(m[1].indexOf('the summons seals at Cherson decide who sails') >= 0, 'help card teaches the Greek sea');
+// full sea-run sim: Cherson castoff reaches the Miklagard finale
+function simSub4(policy) {
+  g.newGame(444); g.board();
+  g.S.leg = 3; g.S.sub = 4; g.S.hub = 'cherson'; g.S.phase = 'hub3';
+  g.S.silver = 12; g.S.food = 150; g.S.hull = 75; g.S.morale = 6; g.S.day = 120; g.S.furs = 3; g.S.captives = 1;
+  g.HMG.hub3Act(g.S, 'castoff3');
+  let steps = 0;
+  while (g.S.phase === 'day' && steps++ < 40) {
+    const evID = g.S.pending && g.S.pending.id;
+    const t2 = g.HMG.currentEvent(g.S);
+    let pick2 = policy[evID] !== undefined ? policy[evID] % t2.options.length : 0;
+    g.choose(pick2);
+  }
+  return { phase: g.S.phase, dest: g.S.result && g.S.result.dest, days: g.S.day, spine: g.S.flags };
+}
+const r4 = simSub4({ summons: 1, cstorm: 1, escort: 0, mesembria: 0, statherios: 0 });
+ok(r4.phase === 'end' && r4.dest === 'Miklagard', 'the sea-run sim reaches the Miklagard finale');
+ok(r4.spine.l3Summ === true && r4.spine.l3Esc === true && r4.spine.l3Mes === true && r4.spine.l3Aith === true, 'the whole sea spine played in the sim');
+
 // round 39: leg-3 art (his ask: not dull or repetitive) + test jumps on the title screen
 ok(/ART3 = \{[\s\S]*?gnezdovo: "data:image\/(webp|jpeg);base64,/.test(m[1]), 'ART3 scenes embedded (webp since round 41)');
 ok(['gnezdovo','kiev','cherson','miklagard'].every(k => new RegExp(k.replace(/[-]/g,' ') + ': ' + String.fromCharCode(34) + 'data:image[\\/](webp|jpeg);base64').test(m[1])), 'four distinct leg-3 scenes embedded (Gnezdovo, Kiev, Cherson, Miklagard)');
