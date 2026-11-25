@@ -334,6 +334,36 @@ for (var k3c = 0; k3c < 3; k3c++) {
 }
 ok(g.S.phase === 'end' && g.S.result.title === 'The sea closes', 'arriving Cherson after the summons stops fails with The sea closes');
 
+// round 42 (his three mobile reports): Holmgard hub trade, auto spirits lift on hub arrival, felt button presses
+ok(m[1].indexOf("a === 'buyfur'") >= 0 && m[1].indexOf("a === 'buycap'") >= 0 && m[1].indexOf("a === 'sellfur'") >= 0 && m[1].indexOf("a === 'sellcap'") >= 0, 'hub3Act carries buy-furs/buy-captive/sell-furs/sell-captives actions');
+g.jumpTest('1');
+g.S.furs = 3; g.S.captives = 2; g.S.silver = 1;
+ok(g.S.flags.hubLift === 1, 'arrival at the Holmgard hub sets the spirits-lift flag');
+var sv42 = g.S.silver;
+g.HMG.hub3Act(g.S, 'buyfur');   // purse 1: cannot buy, no silent loss
+ok(g.S.silver === 1 && g.S.furs === 3, 'buying furs with a too-light purse changes nothing');
+g.HMG.hub3Act(g.S, 'sellfur');
+ok(g.S.silver === sv42 + 9 && g.S.furs === 0, 'selling the furs pays the factor price into the purse (3 x 3 = 9)');
+g.HMG.hub3Act(g.S, 'sellcap');
+ok(g.S.silver === sv42 + 9 + 12 && g.S.captives === 0, 'selling the captives pays 6 a head into the purse');
+g.S.silver = 6;
+g.HMG.hub3Act(g.S, 'buyfur');
+ok(g.S.silver === 4 && g.S.furs === 1, 'buying a fur bale costs 2 into the hold');
+g.HMG.hub3Act(g.S, 'buycap');
+ok(g.S.silver === 0 && g.S.captives === 1, 'taking a captive costs 4 and 2 hold units');
+g.S.hub = 'kiev';
+g.HMG.hub3Act(g.S, 'sellcap');   // not at Holmgard: no factor there
+ok(g.S.captives === 1, 'the factor trade only exists at Holmgard');
+g.S.flags.hubLift = 0;
+g.HMG.arrive3(g.S);   // lands the next hub (Kiev) and lifts spirits
+ok(g.S.hub === 'gnezdovo' && g.S.flags.hubLift === 1, 'every hub arrival lifts spirits and sets the flag (sub 1 Gnezdovo here)');
+ok(m[1].indexOf('s.morale = Math.min(10, s.morale + 1); s.flags.hubLift = 1;') >= 0, 'the arrival bonus is capped at 10 spirits');
+ok(m[1].indexOf('spirits are up') >= 0, 'the hub screen tells him the crew lifted');
+ok(m[1].indexOf('function toast(') >= 0 && m[1].indexOf('function actToast(') >= 0 && m[1].indexOf('toastT') >= 0, 'toast + change-summary helpers exist (felt answers)');
+ok(md.indexOf('transform: scale(.97)') >= 0, 'buttons give a felt pressed state (CSS)');
+ok(m[1].indexOf('Buy a fur bale') >= 0 && m[1].indexOf('Sell the furs to a factor') >= 0, 'the Holmgard hub screen offers the trade buttons');
+ok(m[1].indexOf('Sell the captives to a factor') >= 0 && m[1].indexOf('pays 5 at Miklagard') >= 0, 'sell buttons appear with factor prices, buy buttons say the Miklagard payoff');
+
 // round 39: leg-3 art (his ask: not dull or repetitive) + test jumps on the title screen
 ok(/ART3 = \{[\s\S]*?gnezdovo: "data:image\/(webp|jpeg);base64,/.test(m[1]), 'ART3 scenes embedded (webp since round 41)');
 ok(['gnezdovo','kiev','cherson','miklagard'].every(k => new RegExp(k.replace(/[-]/g,' ') + ': ' + String.fromCharCode(34) + 'data:image[\\/](webp|jpeg);base64').test(m[1])), 'four distinct leg-3 scenes embedded (Gnezdovo, Kiev, Cherson, Miklagard)');
