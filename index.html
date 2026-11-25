@@ -861,6 +861,7 @@ function boardSave(name) {
   b.sort(function (x, y) { return y.s - x.s; });
   b = b.slice(0, 10);
   SR.set(KEYB, JSON.stringify(b));
+  sbPush({ n: nm, s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' });   // round 49: row it to the far-shore board too (offline-safe)
   S.scoreSaved = true;
   save();
   keepScroll = true;  // don't yank the view to the top when the score lands
@@ -875,7 +876,41 @@ function boardHtml(limit) {
   return '<div class="tally" style="margin-top:10px"><div class="row big"><span>Skippers\u2019 board — all crossings, every fate</span><span></span></div>' + rows + '</div>';
 }
 /* ---------- skippers’ board ---------- */
-var BOARDAPI = '';   // round 49: the shared-board endpoint goes here (empty = the board stays on this device)
+var BOARDAPI = 'https://xhruovtrxfsclfrgtezh.supabase.co/rest/v1/hmg_board';   // round 49: the far-shore board lives on Supabase; the publishable key below is public by design, everything else is enforced server-side
+var SBAUTH = 'sb_publishable_L82ToLtxE7lnWlpiMxxP6Q_5IONSlAZ';
+function sbEsc(x) { return String(x == null ? '' : x).replace(/&/g, '&' + 'amp;').replace(/</g, '&' + 'lt;').replace(/>/g, '&' + 'gt;').replace(/"/g, '&' + 'quot;'); }
+function sbPush(row) {
+  if (!BOARDAPI || !SBAUTH || !row) return;
+  fetch(BOARDAPI, { method: 'post', headers: { 'apikey': SBAUTH, 'Authorization': 'Bearer ' + SBAUTH, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify([row]) })
+    .then(function (r) { if (r.ok) toast('Your run is rowed to the far-shore board.'); else toast('The far-shore board refused that log (' + r.status + ').'); })
+    .catch(function () {});   // offline or blocked: the run is already safe in the local board
+}
+function sbPull() {
+  window.sbMsg = 'Rowing to the far-shore board\u2026'; render();
+  fetch(BOARDAPI + '?select=n,s,d,m,t,g&order=s.desc&limit=120', { headers: { 'apikey': SBAUTH, 'Authorization': 'Bearer ' + SBAUTH } })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) { window.sbRows = (Array.isArray(rows) ? rows : []); window.sbMsg = ''; render(); })
+    .catch(function () { window.sbRows = null; window.sbMsg = 'The far shore could not be reached \u2014 the shared board needs open water (a network).'; render(); });
+}
+function sharedHtml() {
+  var h = '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">The skippers\u2019 far-shore board (all players)</summary>' +
+    '<p class="mut" style="font-size:13px;margin:8px 0">Every finished run on the shared board of the road \u2014 the top twenty of each landing. Pull it below (needs the open water).</p>' +
+    '<button class="small" onclick="sbPull()">Pull the far-shore board</button>' +
+    (window.sbMsg ? '<p class="mut" style="font-size:13px;margin:6px 0">' + window.sbMsg + '</p>' : '');
+  var rows = window.sbRows;
+  if (!rows) return h + '</details>';
+  var hubs = [['Miklagard', 'Miklagard \u2014 the Golden Horn'], ['Cherson', 'Cherson'], ['Kiev', 'Kiev'], ['Gnezdovo', 'Gnezdovo'], ['Holmgard', 'Holmgard'], ['Aldeigjuborg', 'Aldeigjuborg']];
+  hubs.forEach(function (hb) {
+    var sub = rows.filter(function (e) { return e.g === hb[0]; }).slice(0, 20);
+    if (!sub.length) return;
+    h += '<div class="tally" style="margin-top:8px"><div class="row big"><span>' + hb[1] + '</span><span></span></div>';
+    sub.forEach(function (e, i) {
+      h += '<div class="row"><span>' + (i + 1) + '. ' + sbEsc(e.n || 'The skipper') + '</span><span>' + (e.s | 0) + ' <span class="mut">\u2014 day ' + (e.d | 0) + ', ' + (e.m | 0) + ' marks</span></span></div>';
+    });
+    h += '</div>';
+  });
+  return h + '</details>';
+}
 var S = null;
 var inTitle = true;
 var inHelp = false;
@@ -1131,6 +1166,7 @@ function viewTitle() {
     '<button class="small" onclick="jumpTest(4)">Third leg — Cherson (day 114, 24 dirhams)</button>' +
     '</details>';
   b += boardHtml(5);
+  b += sharedHtml();
   b += '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Carry your ship\u2019s log (survives board resets)</summary>' +
     '<p class="mut" style="font-size:13px;margin:8px 0">If the board resets, copy this code somewhere safe and paste it back later.</p>' +
     '<textarea id="logcode" rows="3" style="width:100%;box-sizing:border-box;font-size:12px;background:#1a2129;color:#c8d2dc;border:1px solid #2c3947;border-radius:6px;padding:8px"></textarea>' +
