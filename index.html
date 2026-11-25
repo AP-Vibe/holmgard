@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Holmgard and beyond — 0.2 The Crossing</title>
+<title>Holmgard and beyond — 0.3 The Road to Miklagard</title>
 <style>
   :root {
     --bg: #10161d;
@@ -90,7 +90,7 @@
 <body>
 <div id="wrap">
   <div id="app"><div class="sub">loading…</div></div>
-  <div class="footer"><details><summary>Holmgard and beyond — 0.2 “The Crossing” · prototype · notes on the draft</summary><p>draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The river\’s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name Hólmgarðr is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</p></details></div>
+  <div class="footer"><details><summary>Holmgard and beyond — 0.3 “The Road to Miklagard” · prototype · notes on the draft</summary><p>draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The river\’s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name Hólmgarðr is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</p></details></div>
 </div>
 <script>
 var HMG = (function () {
@@ -997,8 +997,8 @@ function viewTitle() {
   var saved = SR.get(KEY);
   var seed = SR.get(KEYS);
   var b = '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.2 — The Crossing</div>' +
-    '<div class="card"><p class="hint center">Prototype: the lake crossing, the landing at Aldeigjuborg, and the river road to Holmgard.</p>';
+    '<div class="sub">0.3 — The Road to Miklagard</div>' +
+    '<div class="card"><p class="hint center">Prototype: the lake crossing, the landing at Aldeigjuborg, the river road to Holmgard, and now the southern water-road: Gnezdovo, Kiev, the rapids and the Greek sea to Miklagard.</p>';
   b += '<button class="primary" onclick="newGame()">A new crossing</button>';
   b += '<button class="small" onclick="showHelp(\'title\')">How to play</button>';
   if (seed) b += '<button onclick="newGame(' + seed + ')">Retry the same fate</button>';
@@ -1035,7 +1035,7 @@ function resumeGame() {
 function viewIntro() {
   var crew = S.crew.map(function (c) { return c.name + ', ' + c.role; }).join(' · ');
   return '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.2 — The Crossing</div>' +
+    '<div class="sub">0.3 — The Road to Miklagard</div>' +
     '<div class="card contract">' +
     '<h2 class="serif" style="margin-top:0">Birka, the 1st of September</h2>' +
     '<p>The merchant Halvdan weighs three bales of Gotland cloth into the hold of your knarr — half a year of someone\u2019s weaving. He speaks a number, and it is a good one.</p>' +
