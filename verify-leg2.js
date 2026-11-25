@@ -189,15 +189,11 @@ ok(m[1].indexOf("if (S && S.leg === 2") >= 0 && m[1].indexOf("sceneSVG('riftwrec
 ok(md.indexOf('ART2.riftwreck = "data:image/webp;base64,') >= 0 && md.indexOf('function sceneSVG(id, leg)') >= 0, 'fail images embedded in ART2 (webp since round 41) and sceneSVG leg signature present');
 
 
-// round 28: deployed cloud board baked in as the DEFAULT address (round 18b change, shipped late)
-ok(m[1].indexOf('var CLOUDDEFAULT') >= 0 && m[1].indexOf('function cloudUrl() { return (SR.get(KEYC) || CLOUDDEFAULT).trim(); }') >= 0, 'his deployed /exec URL is the built-in default cloud-board address');
-ok(m[1].indexOf('back to the built-in board address') >= 0, 'clearing the custom address falls back to the built-in one (message says so)');
-// live override still works: slot value wins over default
-g.newGame(777); g.board();
-global.localStorage.setItem('hmg01cloud', 'https://example.invalid/exec');
-ok(g.cloudUrl && g.cloudUrl() === 'https://example.invalid/exec', 'a custom address in the slot overrides the built-in default');
-global.localStorage.removeItem('hmg01cloud');
-ok(g.cloudUrl() === g.CLOUDDEFAULT, 'with no custom address the built-in default is used');
+// round 48 / publish: GAS leaderboard retired (his round-48 call, GAS deployment deleted) - local board only, shared backend is round 49's work
+ok(m[1].indexOf('script.google.com') < 0, 'no Apps Script URL anywhere (the dead GAS deployment is gone)');
+ok(['cloudHtml','cloudPush','cloudPull','cloudUrl','CLOUDDEFAULT'].every(function (x) { return m[1].indexOf(x) < 0; }), 'no GAS cloud-board code remains in the game');
+ok(m[1].indexOf("var BOARDAPI = '';") >= 0, 'empty BOARDAPI stub left ready for the round-49 shared board');
+ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 29, 'the 29 webp scenes survived the GAS surgery');
 
 
 // round 30: the spring clock (his call: run starts early April from Birka; zero winters; convoy framing)
@@ -209,22 +205,6 @@ const m1c = m[1].replace(/"data:image\/(webp|jpeg|png);base64,[^"]*"/g, 'B64'); 
 ok(m1c.indexOf('Oct') < 0 && m1c.indexOf('Sept ') < 0, 'no autumn dates remain in the game script');
 
 
-// round 32: baked board snapshot + locally captured runs (his ask: leaderboard must survive the preview network block)
-ok(m[1].indexOf('var CLOUDSEED') >= 0 && m[1].indexOf('hmg01local') >= 0, 'CLOUDSEED snapshot and the local-run slot (hmg01local) are both defined');
-ok(m[1].indexOf('function cloudFallback()') >= 0 && m[1].indexOf('function cloudSaveLocal(') >= 0, 'fallback and local-capture helpers present');
-ok(m[1].indexOf('saved here') >= 0, 'locally saved runs are tagged on the board');
-ok(m[1].indexOf('Your log is saved on this device') >= 0 && m[1].indexOf('baked board snapshot plus runs saved on this device') >= 0, 'push and pull catch messages say what was captured and what is shown');
-// behaviour: push failing -> rows land in the local slot; board shows them without any network
-global.localStorage.removeItem('hmg01local');
-global.localStorage.setItem('hmg01board', JSON.stringify([{ n: 'Andrzej', s: 4620, d: 22, m: 0, t: 'full', g: 'Holmgard' }]));
-ok(typeof g.cloudSaveLocal === 'function', 'cloudSaveLocal exported into the sandbox');
-g.cloudSaveLocal(g.cloudRows());
-const locRows = JSON.parse(global.localStorage.getItem('hmg01local') || '[]');
-ok(locRows.length === 1 && locRows[0].n === 'Andrzej' && locRows[0].s === 4620, 'a failed push captures the log into the local slot');
-ok(typeof g.cloudFallback === 'function' && g.cloudFallback().length === 1 && g.cloudFallback()[0].loc === 1, 'cloudFallback merges local runs and tags them for display');
-g.cloudSaveLocal(g.cloudRows());
-ok(JSON.parse(global.localStorage.getItem('hmg01local')).length === 1, 'capturing the same run twice does not duplicate it');
-global.localStorage.removeItem('hmg01local'); global.localStorage.removeItem('hmg01board');
 
 // round 33: screen recentering after boarding (his report: after entering the name and boarding the knarr, the view drifted off-center)
 ok(m[1].indexOf('app.innerHTML = h;') >= 0, 'render builds the new screen fully before touching scroll');
@@ -593,8 +573,8 @@ ok(JSON.parse(global.localStorage.getItem('hmg01board')).length === 1 && JSON.pa
 global.localStorage.removeItem('hmg01board');
 
 // round 40: the version bump (his question: canvas was still labelled 0.2 after leg 3 shipped)
-ok(m[1].indexOf('0.3 — The Road to Miklagard') >= 0 && m[1].indexOf('0.2 — The Crossing') < 0, 'title screen says 0.3 — The Road to Miklagard, no 0.2 label remains');
-ok(md.indexOf('0.3 The Road to Miklagard (Prototype)') >= 0, 'canvas frontmatter title bumped to 0.3');
+ok(m[1].indexOf('0.4 — The Road to Miklagard') >= 0 && m[1].indexOf('0.3 — The Road to Miklagard') < 0, 'title screen says 0.4 — The Road to Miklagard (public release)');
+ok(md.indexOf('0.4 The Road to Miklagard (Public Release)') >= 0, 'canvas frontmatter says 0.4 Public Release');
 // round 46 / art pass: leg-3 event scenes embedded as webp, leg-3 render path prefers ART3EV
 ok(/ART3EV = \{[\s\S]*?rapids1: "data:image\/webp;base64,/.test(m[1]), 'ART3EV map embedded with the rapids scene (webp)');
 ['rapids1','nenasytets','parley','portage3'].forEach(k => ok(new RegExp(k + ': "data:image\\/webp;base64,').test(m[1]), 'ART3EV has the ' + k + ' scene (webp)'));
@@ -607,6 +587,10 @@ ok(m[1].indexOf('data:image/jpeg') < 0, 'no jpeg data URIs remain (the gnezdovo 
 ok(m[1].split('data:image/webp;base64,').length - 1 === 29, 'all 29 embedded scenes are webp');
 const sz = require('fs').statSync('canvases/holmgard-01-the-crossing/CANVAS.md').size;
 ok(sz < 600000 && sz > 400000, 'canvas ' + sz + ' bytes: diet landed in the 400-600KB window');
+
+// round 48 / PWA: manifest link + service-worker registration, game installs and plays offline after first load
+ok(m[0] && md.indexOf('<link rel="manifest" href="./manifest.webmanifest" />') >= 0, 'manifest linked in the head');
+ok(m[1].indexOf("navigator.serviceWorker.register('./sw.js')") >= 0, 'service worker registered (guarded for non-browser runs)');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
