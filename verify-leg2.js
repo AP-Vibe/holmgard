@@ -595,5 +595,12 @@ global.localStorage.removeItem('hmg01board');
 // round 40: the version bump (his question: canvas was still labelled 0.2 after leg 3 shipped)
 ok(m[1].indexOf('0.3 — The Road to Miklagard') >= 0 && m[1].indexOf('0.2 — The Crossing') < 0, 'title screen says 0.3 — The Road to Miklagard, no 0.2 label remains');
 ok(md.indexOf('0.3 The Road to Miklagard (Prototype)') >= 0, 'canvas frontmatter title bumped to 0.3');
+// round 46 / art pass: leg-3 event scenes embedded as webp, leg-3 render path prefers ART3EV
+ok(/ART3EV = \{[\s\S]*?rapids1: "data:image\/webp;base64,/.test(m[1]), 'ART3EV map embedded with the rapids scene (webp)');
+['rapids1','nenasytets','parley','portage3'].forEach(k => ok(new RegExp(k + ': "data:image\\/webp;base64,').test(m[1]), 'ART3EV has the ' + k + ' scene (webp)'));
+ok(m[1].indexOf('function ev3Img(id)') >= 0, 'ev3Img render helper exists');
+ok(m[1].indexOf("(leg === 3 && ART3EV[id]) ? ev3Img(id)") >= 0, 'sceneSVG prefers leg-3 event art before the leg-1 fallbacks');
+ok(m[1].indexOf('rapids1: \'seals\'') >= 0 && m[1].indexOf('parley: \'chud\'') >= 0, 'ARTKEY fallbacks kept intact for uncovered scenes');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
