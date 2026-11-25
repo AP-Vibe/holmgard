@@ -602,5 +602,11 @@ ok(m[1].indexOf('function ev3Img(id)') >= 0, 'ev3Img render helper exists');
 ok(m[1].indexOf("(leg === 3 && ART3EV[id]) ? ev3Img(id)") >= 0, 'sceneSVG prefers leg-3 event art before the leg-1 fallbacks');
 ok(m[1].indexOf('rapids1: \'seals\'') >= 0 && m[1].indexOf('parley: \'chud\'') >= 0, 'ARTKEY fallbacks kept intact for uncovered scenes');
 
+// round 47 / art diet: all art re-encoded to 480px webp q62, 821KB -> 589KB, no jpeg blobs left
+ok(m[1].indexOf('data:image/jpeg') < 0, 'no jpeg data URIs remain (the gnezdovo and cherson stragglers converted)');
+ok(m[1].split('data:image/webp;base64,').length - 1 === 29, 'all 29 embedded scenes are webp');
+const sz = require('fs').statSync('canvases/holmgard-01-the-crossing/CANVAS.md').size;
+ok(sz < 600000 && sz > 400000, 'canvas ' + sz + ' bytes: diet landed in the 400-600KB window');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
