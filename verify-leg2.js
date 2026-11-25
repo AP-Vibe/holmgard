@@ -367,7 +367,7 @@ ok(m[1].indexOf('Sell the captives to a factor') >= 0 && m[1].indexOf('pays 5 at
 // round 43 / build round 2: the real decks — the Lovat/portage subleg and the Dnieper subleg (per the signed brief)
 ok(m[1].indexOf('var LOVAT3') >= 0 && m[1].indexOf('var DNIPR3') >= 0, 'the two real southern decks exist');
 ok(m[1].indexOf('s.flags.l3Lovat') >= 0 && m[1].indexOf('s.flags.l3Port') >= 0, 'the Lovat and portage gates are per-subleg flagged');
-ok(m[1].indexOf('DNIPR3 : (s.sub === 3) ? RIVER : LOVAT3') >= 0, 'subleg decks: 1 Lovat, 2 Dnieper, 3 river placeholder (round 3 to come), 4 sea');
+ok(m[1].indexOf('DNIPR3 : (s.sub === 3) ? RAPIDS3 : LOVAT3') >= 0, 'subleg decks: 1 Lovat, 2 Dnieper, 3 rapids (round 44), 4 sea');
 // gated draws
 g.newGame(777); g.board();
 g.S.leg = 3; g.S.sub = 1; g.S.phase = 'day'; g.S.flags.l3Lovat = false; g.S.flags.l3Port = false;
@@ -432,6 +432,81 @@ function simSub1(policy) {
 const r1 = simSub1({ lovat: 1, portage3: 1 });
 ok((r1.phase === 'hub3' && r1.hub === 'gnezdovo') || r1.phase === 'end', 'subleg 1 sim terminates (reached a hub or failed a guard), no hang');
 ok(r1.hull <= 90, 'subleg 1 sim ran real events (state moved)');
+
+// round 44 / build round 3: the rapids road — seven rapids, Nenasytets, Khortytsia, the Pecheneg parley, the delta
+ok(m[1].indexOf('var RAPIDS3') >= 0, 'the rapids deck exists');
+ok(m[1].indexOf('l3Rap') >= 0 && m[1].indexOf('l3Nen') >= 0 && m[1].indexOf('l3Khor') >= 0 && m[1].indexOf('l3Delta') >= 0, 'the four rapids-road gates are flagged per-subleg');
+ok(m[1].indexOf('l3Parley = true') >= 0, 'the Pecheneg come to the bank at most once');
+ok(m[1].indexOf('lateFleet ? -14 : -6') >= 0 && m[1].indexOf('lateFleet ? -26 : -18') >= 0 && m[1].indexOf('lateFleet ? -30 : -22') >= 0, 'miss the June fleet and the rapids bite harder (no convoy hands)');
+// forced draws down the spine
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 3; g.S.phase = 'day';
+g.S.flags.l3Rap = false; g.S.flags.l3Nen = false; g.S.flags.l3Khor = false; g.S.flags.l3Delta = false; g.S.flags.l3Parley = false;
+g.S.progress = 20;
+ok(g.HMG.drawMorning(g.S).id === 'rapids1', 'progress 20 on the rapids road draws the first of the seven');
+g.S.progress = 40;
+ok(g.HMG.drawMorning(g.S).id === 'nenasytets', 'progress 40 draws Nenasytets, the insatiable');
+g.S.progress = 60;
+ok(g.HMG.drawMorning(g.S).id === 'khortytsia', 'progress 60 draws the great island (the cock sacrifice)');
+g.S.progress = 82;
+ok(g.HMG.drawMorning(g.S).id === 'delta', 'progress 82 draws the reeds and the channels');
+ok(g.S.flags.l3Rap && g.S.flags.l3Nen && g.S.flags.l3Khor && g.S.flags.l3Delta, 'all four rapids gates set once drawn');
+// choice mechanics
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 3; g.S.phase = 'day';
+g.S.hull = 80; g.S.morale = 6; g.S.captives = 2;
+g.S.pending = { id: 'rapids1' };
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.hull === 74, 'warping through the first rapid scrapes 6 hull (fleet along)');
+g.S.flags.lateFleet = true;
+g.S.pending = { id: 'rapids1' }; g.S.hull = 80;
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.hull === 66, 'the same warp alone costs 14 hull — the convoy mutual aid is gone');
+g.newGame(777); g.board(); g.S.leg = 3; g.S.sub = 3; g.S.phase = 'day';
+g.S.captives = 2; g.S.food = 100; g.S.morale = 6; g.S.silver = 10;
+g.S.pending = { id: 'parley' }; g.S.phase = 'day';
+g.HMG.applyChoice(g.S, 0);
+ok(g.S.silver === 5 && g.S.food === 113 && g.S.morale === 7, 'horned cattle: 5 dirhams for +25 food less the day (12 mouths with captives) and a lift');
+// the lethal parley: force the kill branch deterministically
+g.newGame(123); g.board(); g.S.leg = 3; g.S.sub = 3; g.S.phase = 'day';
+var crewAlive0 = g.S.crew.filter(c => !c.dead).length;
+var killedAny = false, tries = 0;
+while (tries++ < 60) {
+  g.S.pending = { id: 'parley' }; g.S.phase = 'day';
+  // keep morale from sinking the run: reset every try
+  g.S.morale = 6;
+  const before = g.S.crew.filter(c => !c.dead).length;
+  g.HMG.applyChoice(g.S, 2);
+  if (g.S.crew.filter(c => !c.dead).length < before) killedAny = true;
+  // undo any deaths for the next try
+  g.S.crew.forEach(c => { c.dead = false; c.hp = 2; c.graveF = 2; });
+  if (killedAny) break;
+  g.S.rngS = (g.S.rngS + 1) | 0;
+}
+ok(killedAny, 'a fumbled parley can kill a crew member where he stands (round-37 lock: an event, never a war)');
+ok(m[1].indexOf('an arrow from the bank') >= 0, 'the parley kill branch is documented in code');
+// texts present
+for (const t4 of ['The first of the seven', 'Nenasytets, the insatiable', 'The great island', 'The Pecheneg come to the bank', 'The reeds and the channels']) {
+  ok(m[1].indexOf(t4) >= 0, 'rapids text present: ' + t4);
+}
+ok(m[1].indexOf("rapids1: 'seals'") >= 0 && m[1].indexOf("parley: 'chud'") >= 0, 'rapids events map to scene art');
+ok(m[1].indexOf('the cock sacrifice at the great island is worth its coin') >= 0, 'help card teaches the rapids road');
+// full subleg-3 sim: Kiev castoff with a sensible policy must reach Cherson (or fail a guard), never hang
+function simSub3(policy) {
+  g.newGame(2024); g.board();
+  g.S.leg = 3; g.S.sub = 3; g.S.hub = 'kiev'; g.S.phase = 'hub3';
+  g.S.silver = 20; g.S.food = 250; g.S.hull = 85; g.S.morale = 6; g.S.day = 90;
+  g.HMG.hub3Act(g.S, 'castoff3');
+  let steps = 0;
+  while (g.S.phase === 'day' && steps++ < 80) {
+    const evID = g.S.pending && g.S.pending.id;
+    const t2 = g.HMG.currentEvent(g.S);
+    let pick2 = policy[evID] !== undefined ? policy[evID] % t2.options.length : 0;
+    g.choose(pick2);
+  }
+  return { phase: g.S.phase, hub: g.S.hub, hull: g.S.hull, day: g.S.day, captives: g.S.captives };
+}
+const rsafe = simSub3({ rapids1: 2, nenasytets: 0, parley: 0, delta: 1 });
+ok(rsafe.phase === 'hub3' && rsafe.hub === 'cherson' || rsafe.phase === 'end', 'the rapids road sim terminates at Cherson (or a guard), no hang');
+ok(rsafe.hull < 85 || rsafe.day > 90, 'subleg 3 sim ran real events (state moved)');
 
 // round 39: leg-3 art (his ask: not dull or repetitive) + test jumps on the title screen
 ok(/ART3 = \{[\s\S]*?gnezdovo: "data:image\/(webp|jpeg);base64,/.test(m[1]), 'ART3 scenes embedded (webp since round 41)');
