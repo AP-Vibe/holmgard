@@ -192,7 +192,7 @@ ok(md.indexOf('ART2.riftwreck = "data:image/webp;base64,') >= 0 && md.indexOf('f
 // round 48 / publish: GAS leaderboard retired (his round-48 call, GAS deployment deleted) - local board only, shared backend is round 49's work
 ok(m[1].indexOf('script.google.com') < 0, 'no Apps Script URL anywhere (the dead GAS deployment is gone)');
 ok(['cloudHtml','cloudPush','cloudPull','cloudUrl','CLOUDDEFAULT'].every(function (x) { return m[1].indexOf(x) < 0; }), 'no GAS cloud-board code remains in the game');
-ok(m[1].indexOf("var BOARDAPI = '';") >= 0, 'empty BOARDAPI stub left ready for the round-49 shared board');
+ok(m[1].indexOf("var BOARDAPI = 'https://") >= 0, 'BOARDAPI filled: round 49 landed the shared-board endpoint (was an empty stub in round 48)');
 ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 29, 'the 29 webp scenes survived the GAS surgery');
 
 
@@ -591,6 +591,17 @@ ok(sz < 600000 && sz > 400000, 'canvas ' + sz + ' bytes: diet landed in the 400-
 // round 48 / PWA: manifest link + service-worker registration, game installs and plays offline after first load
 ok(m[0] && md.indexOf('<link rel="manifest" href="./manifest.webmanifest" />') >= 0, 'manifest linked in the head');
 ok(m[1].indexOf("navigator.serviceWorker.register('./sw.js')") >= 0, 'service worker registered (guarded for non-browser runs)');
+
+// round 49 / the far-shore board: shared Supabase leaderboard (public publishable key by design; server-side constraints + rate limit)
+ok(m[1].indexOf('https://xhruovtrxfsclfrgtezh.supabase.co/rest/v1/hmg_board') >= 0, 'BOARDAPI points at the shared board');
+ok(m[1].indexOf('sb_publishable_') > 0 && m[1].indexOf('function sbPush(row)') >= 0, 'sbPush ships with the publishable key (public by design)');
+ok(m[1].indexOf("sbPush({ n: nm, s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' })") >= 0, 'every finished run is pushed to the far-shore board');
+ok(m[1].indexOf('function sbPull()') >= 0 && m[1].indexOf('function sharedHtml()') >= 0 && m[1].indexOf('b += sharedHtml();') >= 0, 'the title screen can pull the shared board');
+ok(m[1].indexOf('function sbEsc(') >= 0 && m[1].indexOf('sbEsc(e.n') >= 0, 'shared-board names are HTML-escaped before rendering');
+ok(m[1].split('top twenty of each landing').length > 1, 'the shared UI teaches the top-twenty-per-landing rule');
+// offline safety: the fetch stub in this harness rejects every call; the sims below must still complete (push swallows, pull renders the catch message)
+g.sbPull();
+ok(true, 'sbPull runs without network without crashing (harness fetch rejects)');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
