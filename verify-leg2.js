@@ -595,13 +595,21 @@ ok(m[1].indexOf("navigator.serviceWorker.register('./sw.js')") >= 0, 'service wo
 // round 49 / the far-shore board: shared Supabase leaderboard (public publishable key by design; server-side constraints + rate limit)
 ok(m[1].indexOf('https://xhruovtrxfsclfrgtezh.supabase.co/rest/v1/hmg_board') >= 0, 'BOARDAPI points at the shared board');
 ok(m[1].indexOf('sb_publishable_') > 0 && m[1].indexOf('function sbPush(row)') >= 0, 'sbPush ships with the publishable key (public by design)');
-ok(m[1].indexOf("sbPush({ n: nm, s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' })") >= 0, 'every finished run is pushed to the far-shore board');
-ok(m[1].indexOf('function sbPull()') >= 0 && m[1].indexOf('function sharedHtml()') >= 0 && m[1].indexOf('b += sharedHtml();') >= 0, 'the title screen can pull the shared board');
+ok(m[1].indexOf("sbPush(_row);   // round 49: row it to the far-shore board too (offline-safe)") >= 0, 'every finished run is pushed to the far-shore board');
+ok(m[1].indexOf('function sbPull(') >= 0 && m[1].indexOf('function sharedHtml()') >= 0 && m[1].indexOf('b += sharedHtml();') >= 0, 'the title screen can pull the shared board');
 ok(m[1].indexOf('function sbEsc(') >= 0 && m[1].indexOf('sbEsc(e.n') >= 0, 'shared-board names are HTML-escaped before rendering');
 ok(m[1].split('top twenty of each landing').length > 1, 'the shared UI teaches the top-twenty-per-landing rule');
 // offline safety: the fetch stub in this harness rejects every call; the sims below must still complete (push swallows, pull renders the catch message)
 g.sbPull();
 ok(true, 'sbPull runs without network without crashing (harness fetch rejects)');
+
+// round 50 / his batch: auto-pull, carry-log retired, rank-at-scoring on the settlement card
+ok(m[1].indexOf('window.sbAuto !== 1') >= 0 && m[1].indexOf('sbPull(true)') >= 0, 'shared board auto-pulls quietly, once per load');
+ok(m[1].indexOf('function sbPull(silent)') >= 0, 'sbPull silent mode keeps offline failures quiet on auto');
+ok(['logEncode','logDecode','logFill','logRestore','Carry your ship','logcode'].every(function (x) { return m[1].indexOf(x) < 0; }), 'the carry-your-log export/import is gone entirely');
+ok(m[1].indexOf('function sbRank(row)') >= 0 && m[1].indexOf('sbRank(_row);') >= 0, 'every scored run also fetches its standing at the landing');
+ok(m[1].indexOf('Among the skippers at') >= 0 && m[1].indexOf('logged ventures at') >= 0, 'the settlement card shows the landing\u2019s top five and your standing');
+ok(m[1].indexOf('d.rank > 5') >= 0, 'your row is highlighted in amber when you sit below the top five');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
