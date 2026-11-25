@@ -205,7 +205,8 @@ ok(g.HMG.dateStr(1) === 'Apr 10' && g.HMG.dateStr(32) === 'May 11' && g.HMG.date
 ok(m[1].indexOf('The season slips away') >= 0 && m[1].indexOf('The convoys are gone') >= 0 && m[1].indexOf('The landing has emptied') >= 0, 'late/fail endings recast to the convoy clock');
 ok(m[1].indexOf('leave the landing about the 11th of May') >= 0 && m[1].indexOf('The convoy window') >= 0, 'intro and help state the convoy window, not the freeze');
 ok(m[1].indexOf('even the spring flood ran thin') >= 0, 'low-water event reframed to a thin spring melt (May calendar)');
-ok(m[1].indexOf('Oct') < 0 && m[1].indexOf('Sept ') < 0, 'no autumn dates remain in the game script');
+const m1c = m[1].replace(/"data:image\/jpeg;base64,[^"]*"/g, 'B64');   // base64 blobs can contain any trigram: check CODE, not art
+ok(m1c.indexOf('Oct') < 0 && m1c.indexOf('Sept ') < 0, 'no autumn dates remain in the game script');
 
 
 // round 32: baked board snapshot + locally captured runs (his ask: leaderboard must survive the preview network block)
@@ -332,5 +333,27 @@ for (var k3c = 0; k3c < 3; k3c++) {
   g.HMG.applyChoice(g.S, 0);
 }
 ok(g.S.phase === 'end' && g.S.result.title === 'The sea closes', 'arriving Cherson after the summons stops fails with The sea closes');
+
+// round 39: leg-3 art (his ask: not dull or repetitive) + test jumps on the title screen
+ok(/ART3 = .{1,2}[\s\S]*?gnezdovo: "data:image.{0,2}jpeg;base64/.test(m[1]), 'ART3 exists with embedded jpegs');
+ok(['gnezdovo','kiev','cherson','miklagard'].every(k => m[1].indexOf(k + ': "data:image/jpeg;base64,') >= 0), 'four distinct leg-3 scenes embedded (Gnezdovo, Kiev, Cherson, Miklagard)');
+ok(m[1].indexOf('function hub3Img(hub)') >= 0 && m[1].indexOf("hub3Img(hub)") >= 0, 'hub screens use per-hub art, not the shared market scene');
+ok(m[1].indexOf("r.dest === 'Miklagard'") >= 0 && m[1].indexOf("r.tier === 'seafail'") >= 0, 'the Miklagard finale and the sea-closes fail get their own scenes');
+
+// test jumps: land mid-road with average purse and day
+ok(m[1].indexOf('function jumpTest(kind)') >= 0 && m[1].indexOf('Test jumps') >= 0, 'title screen has the test-jump panel');
+global.localStorage.removeItem('hmg01board');
+g.jumpTest && g.jumpTest('leg2');
+ok(g.S.phase === 'hub' && g.S.day === 24 && g.S.silver === 32 && g.S.flags.test === true, 'leg-2 jump lands at the Aldeigjuborg hub, day 24, 32 dirhams, marked as test');
+g.jumpTest(3);
+ok(g.S.leg === 3 && g.S.sub === 3 && g.S.hub === 'kiev' && g.S.day === 88 && g.S.silver === 30, 'leg-3 Kiev jump lands at the Kiev hub, day 88, 30 dirhams');
+g.jumpTest(4);
+ok(g.S.sub === 4 && g.S.hub === 'cherson' && g.S.day === 114, 'Cherson jump lands at the Cherson hub, day 114');
+// test runs never touch the board
+global.localStorage.setItem('hmg01board', JSON.stringify([{ n: 'keeper', s: 500, d: 20, m: 0, t: 'full', g: 'Aldeigjuborg' }]));
+g.S.scoreSaved = false;
+g.boardSave('Tester');
+ok(JSON.parse(global.localStorage.getItem('hmg01board')).length === 1 && JSON.parse(global.localStorage.getItem('hmg01board'))[0].n === 'keeper', 'a test run is never written to the skippers\u2019 board');
+global.localStorage.removeItem('hmg01board');
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
