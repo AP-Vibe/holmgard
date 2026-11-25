@@ -519,7 +519,7 @@ var HMG = (function () {
 
   // v0.2 hub: the landing at Aldeigjuborg between the legs. Crew replacement is paid from the earned
   // settlement purse (with the buyer's silver, not petty cash), alongside buying the upriver cargo.
-  function holdUsed(s) { return s.furs + s.captives * 2 + (s.freight || 0); }
+  function holdUsed(s) { return s.furs + s.captives * 2 + (s.freight || 0) + (s.greek || 0); }
 
   function enterHub(s) {
     s.silver += (s.result && s.result.marks) || 0;   // the settlement lands in the purse
@@ -577,6 +577,7 @@ var HMG = (function () {
   function leg3Dest(sub) { return ['Gnezdovo', 'Kiev', 'Cherson', 'Miklagard'][(sub || 1) - 1]; }
 
   function begin3(s) {
+    s.greek = 0;   // round 51: bales of Greek goods bought at the Cherson market, paid out at Miklagard
     s.leg = 3; s.sub = 1; s.hub = 'holmgard'; s.progress = 0;
     s.lastEv = []; s.pending = null;
     s.flags.rested = false; s.flags.feasted = false;
@@ -598,7 +599,8 @@ var HMG = (function () {
     else if (a === 'freight' && (s.hub === 'holmgard' || s.hub === 'gnezdovo') && holdUsed(s) + 1 <= HOLD) { s.freight = (s.freight || 0) + 1; }  // freight taken south pays at Kiev
     else if (a === 'buyfur' && s.hub === 'holmgard' && s.silver >= 2 && holdUsed(s) + 1 <= HOLD) { s.silver -= 2; s.furs += 1; }   // round 42: Holmgard trade — buy the southern venture's cargo
     else if (a === 'buycap' && s.hub === 'holmgard' && s.silver >= 4 && holdUsed(s) + 2 <= HOLD) { s.silver -= 4; s.captives += 1; }
-    else if (a === 'sellfur' && s.hub === 'holmgard' && s.furs > 0) { s.silver += s.furs * 3; s.furs = 0; }   // the factor's quick price: 3 a bale — a fallback, not the play
+    else if (a === 'sellfur' && s.hub === 'holmgard' && s.furs > 0) { s.silver += s.furs * 3; s.furs = 0; }
+    else if (a === 'buygreek' && s.hub === 'cherson' && s.silver >= 3 && holdUsed(s) + 1 <= HOLD) { s.silver -= 3; s.greek = (s.greek || 0) + 1; }   // round 51: the Greek market — hold space is the cap, the factor pays 6 a bale at Miklagard   // the factor's quick price: 3 a bale — a fallback, not the play
     else if (a === 'sellcap' && s.hub === 'holmgard' && s.captives > 0) { s.silver += s.captives * 6; s.captives = 0; }
     else if (a === 'rest' && !s.flags.rested) {
       s.flags.rested = true;
@@ -729,6 +731,7 @@ var HMG = (function () {
       if (s.flags.lateFleet) base.text += ' You came south behind the June fleet, and the payslips notice.';
     }
     if (s.flags.freightPaid) base.text += ' The merchants\u2019 ' + s.flags.freightPaid + ' freight bale' + (s.flags.freightPaid === 1 ? '' : 's') + ' settled at Kiev — ' + (s.flags.freightPaid * 2) + ' dirham' + (s.flags.freightPaid * 2 === 1 ? '' : 's') + ' to the purse.';
+    if (s.greek) { s.silver += s.greek * 6; base.silver = s.silver; base.text += ' A factor of the Greek houses takes the ' + s.greek + ' bale' + (s.greek === 1 ? '' : 's') + ' of Cherson goods over the jetty — six dirhams apiece, ' + (s.greek * 6) + ' to the purse.'; s.greek = 0; }   // round 51: the Greek market pays out at the Horn
     return base;
   }
 
@@ -923,7 +926,7 @@ function viewHelp() {
     '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg — near 500 sea-miles, a fair crossing 15\u201320 days. Second: upriver to Holmgard — near 120 miles, 15\u201320 days loaded. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
     '<div><span>The landing \u2014 between the legs</span>At Aldeigjuborg the cloth is scored and paid out. The hub screen follows: hire hands from the beach, load furs (2 dirhams, 1 hold unit) or a captive (4 dirhams, 2 hold units), or take a merchant\u2019s freight bale (free, 1 hold unit, pays 2 dirhams at Holmgard \u2014 good silver when the purse runs thin, but it crowds out furs), then cast off up the river. The hold fits 12 units.</div>' +
     '<div><span>Captives \u2014 hold and pot</span>A captive is cargo that eats: one ration a day, counted in the day\u2019s mouths. If the pot runs dry, the crew eats first, the captives go hungry, and the crew hears them (spirits drop). At the rapids, walking them round means one may bolt for the woods.</div>' +
-    '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Gnezdovo, down the Dnieper to Kiev, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears Kiev early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Gnezdovo pays at Kiev; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. The rapids road below Kiev: warp through on lines, run under oar, or walk the cargo round — Nenasytets is the big one, and a captive on the chain-line may bolt. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin. The Greek sea: the summons seals at Cherson decide who sails, the treaty dromons escort what they can see — Mesembria has the last cheap bread, St Aitherios the last re-rig, and then the Horn.</div>' +
+    '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Gnezdovo, down the Dnieper to Kiev, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears Kiev early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Gnezdovo pays at Kiev; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. The rapids road below Kiev: warp through on lines, run under oar, or walk the cargo round — Nenasytets is the big one, and a captive on the chain-line may bolt. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin. The Greek sea: the summons seals at Cherson decide who sails, the treaty dromons escort what they can see — Mesembria has the last cheap bread, St Aitherios the last re-rig, and then the Horn. At Cherson the Greek market is open: a bale of wine, oil or glass costs 3 dirhams and 1 unit of hold — the factor pays 6 a bale at Miklagard, so spare hold and spare silver should become goods.</div>' +
     '<div><span>The convoy window \u2014 day 32 (May 11)</span>The thaw clears Ladoga and the early southbound convoys leave the landing. Arrive after day 32 and the buyer pays half; drag past day 44 and the Kiev road closes for good.</div>' +
     '<div><span>Names \u2014 chips under the bar</span>Your crew. Each is a person who lives or dies by your choices, and each death costs 10 dirhams of the settlement and slows the boat.</div>' +
     '</div>' +
@@ -1121,8 +1124,10 @@ function header() {
     ? ({ 1: 'Third leg — the Lovat and the portage, south to Gnezdovo', 2: 'Third leg — down the Dnieper to Kiev', 3: 'Third leg — the rapids road to Cherson', 4: 'Third leg — the Greek sea to Miklagard' })[S.sub || 1]
     : ((S.leg === 2) ? 'Second leg — the road to Holmgard' : 'First leg — Birka to Aldeigjuborg');
   var cargo = (S.leg >= 2)
-    ? '<span>Hold <b>' + HMG.holdUsed(S) + '/' + HMG.HOLD + '</b> · furs <b>' + S.furs + '</b> · freight <b>' + (S.freight || 0) + '</b> · captives <b>' + S.captives + '</b></span>'
-    : '<span>Provision <b>' + S.silver + '</b> dirhams</span>';
+    ? '<span>Purse <b>' + S.silver + '</b> dirhams</span>' +
+      '<span>Hold <b>' + HMG.holdUsed(S) + '/' + HMG.HOLD + '</b> · furs <b>' + S.furs + '</b> · freight <b>' + (S.freight || 0) + '</b> · captives <b>' + S.captives + '</b>' + ((S.greek) ? ' · Greek <b>' + S.greek + '</b>' : '') + '</span>'
+    : '<span>Provision <b>' + S.silver + '</b> dirhams</span>';   // round 51: the purse shows on every leg
+
   return '<div class="top">' +
     '<div class="dayline">Day ' + S.day + ' — ' + HMG.dateStr(S.day) + ' · ' + legName + '</div>' +
     '<div class="stats">' +
@@ -1359,7 +1364,7 @@ function viewHub3() {
     holmgard: 'The settlement silver is in your purse, and south of the town the water-road runs to the Greek sea. Load the southern venture — the road is long, and the hold is what it is.',
     gnezdovo: 'Timber walls over the river, a tar smell on the water, ferrymen\u2019s news on the bank. They caulk keels here for the last long downstream. Seal the hull, rest, or take freight — the Dnieper runs from here.',
     kiev: 'The bluffs are black with beached keels and the gathering is loud on the sand. The fleet will not wait past its day. Whatever you carry now must pass the rapids road.',
-    cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken and take the open water while the summons holds.'
+    cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken — and the Greek market is open: wine, oil and glass bought here pay a factor\u2019s six dirhams a bale at Miklagard. Take the open water while the summons holds.'
   };
   var cast3 = ['Run the Lovat and the portage to Gnezdovo', 'Cast off down the Dnieper for Kiev', 'Run the rapids road to Cherson', 'Take the Greek sea for Miklagard'][(S.sub || 1) - 1];
   var gateTxt = '';
@@ -1376,7 +1381,7 @@ function viewHub3() {
     '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units — ' + freeH + ' free</span></div>' +
     '<div class="row"><span>Mouths to feed</span><span>' + m3 + ' eat ' + m3 + ' rations a day — ' + S.food + ' aboard, about ' + daysOf + ' days</span></div>' +
     ((hub === 'kiev' && S.flags.freightPaid) ? '<div class="row"><span>Freight settled here</span><span>' + S.flags.freightPaid + ' bale' + (S.flags.freightPaid === 1 ? '' : 's') + ' — ' + (S.flags.freightPaid * 2) + ' dirhams to the purse</span></div>' : '') +
-    '<div class="row"><span>Loaded</span><span>' + S.furs + ' furs · ' + (S.freight || 0) + ' freight · ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') + '</span></div>' +
+    '<div class="row"><span>Loaded</span><span>' + S.furs + ' furs · ' + (S.freight || 0) + ' freight · ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') + ((S.greek) ? ' · ' + S.greek + ' Greek bale' + (S.greek === 1 ? '' : 's') : '') + '</span></div>' +
     '</div>' +
     '<div class="holdbar"><i style="width:' + Math.round(usedH / HMG.HOLD * 100) + '%"></i></div>' +
     '<p class="hint">' + gateTxt + '</p>' +
@@ -1385,6 +1390,9 @@ function viewHub3() {
     '<button onclick="hub3(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '— no hands left on the bank' : (S.silver < 5 ? '— purse too light (5 dirhams)' : '— 5 dirhams · ' + hireable[0] + ' waits')) + '</span></button>' +
     ((hub === 'holmgard' || hub === 'gnezdovo')
       ? '<button onclick="hub3(\'freight\')" ' + (freeH < 1 ? 'disabled' : '') + '>Take a merchant\u2019s freight bale <span class="mut">' + (freeH < 1 ? '— hold full' : '— free · 1 unit · pays 2 dirhams at Kiev') + '</span></button>'
+      : '') +
+    ((hub === 'cherson')
+      ? '<button onclick="hub3(\'buygreek\')" ' + (S.silver < 3 || freeH < 1 ? 'disabled' : '') + '>Buy a bale of Greek goods <span class="mut">' + (S.silver < 3 ? '— purse too light (3 dirhams)' : (freeH < 1 ? '— hold full' : '— 3 dirhams · 1 unit · pays 6 dirhams at Miklagard')) + '</span></button>'
       : '') +
     ((hub === 'holmgard')
       ? '<button onclick="hub3(\'buyfur\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (freeH < 1 ? '— hold full' : '— 2 dirhams · 1 unit · pays 5 at Miklagard')) + '</span></button>' +
@@ -1409,7 +1417,7 @@ function toast(msg) {
   if (toastT) clearTimeout(toastT);
   toastT = setTimeout(function () { box.innerHTML = ''; }, 2400);
 }
-function snap() { return { s: S.silver, d: S.food, h: S.hull, f: S.furs, c: S.captives, g: S.freight || 0, m: S.morale }; }
+function snap() { return { s: S.silver, d: S.food, h: S.hull, f: S.furs, c: S.captives, g: S.freight || 0, m: S.morale, k: S.greek || 0 }; }
 function actToast(b) {
   var t = [];
   if (S.silver !== b.s) t.push(((S.silver - b.s > 0) ? '+' : '') + (S.silver - b.s) + ' dirhams');
@@ -1418,6 +1426,7 @@ function actToast(b) {
   if (S.furs !== b.f) t.push(((S.furs - b.f > 0) ? '+' : '') + (S.furs - b.f) + (S.furs - b.f === 1 ? ' fur' : ' furs'));
   if (S.captives !== b.c) t.push(((S.captives - b.c > 0) ? '+' : '') + (S.captives - b.c) + (S.captives - b.c === 1 ? ' captive' : ' captives'));
   if ((S.freight || 0) !== b.g) t.push((((S.freight || 0) - b.g > 0) ? '+' : '') + ((S.freight || 0) - b.g) + ' freight');
+  if ((S.greek || 0) !== b.k) t.push((((S.greek || 0) - b.k > 0) ? '+' : '') + (S.greek || 0) - b.k + ((S.greek || 0) - b.k === 1 ? ' Greek bale' : ' Greek bales'));
   if (S.morale !== b.m) t.push('spirits ' + ((S.morale - b.m > 0) ? '+' : '') + (S.morale - b.m));
   if (t.length) toast(t.join(' · '));
 }
