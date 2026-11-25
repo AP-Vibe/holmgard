@@ -218,7 +218,7 @@ ok(!/(input|input\.boardinput) \{[^}]*font-size: 1[0-5]px/.test(md), 'no input C
 
 // round 35: freight contracts at the landing (his spec: other merchants' goods transport, paid 2 dirhams per cargo space)
 ok(m[1].indexOf("freight: 0,") >= 0, 'new runs start with an empty freight Manifest');
-ok(/function holdUsed\(s\) \{ return s\.furs \+ s\.captives \* 2 \+ \(s\.freight \|\| 0\); \}/.test(m[1]), 'freight bales count against the 12-unit hold');
+ok(/function holdUsed\(s\) \{ return s\.furs \+ s\.captives \* 2 \+ \(s\.freight \|\| 0\) \+ \(s\.greek \|\| 0\); \}/.test(m[1]), 'freight and Greek bales count against the 12-unit hold');
 ok(m[1].indexOf("a === 'freight'") >= 0 && m[1].indexOf("s.freight = (s.freight || 0) + 1") >= 0, 'the hub has a take-a-freight-bale action');
 ok(/marks: s\.furs \* 5 \+ s\.captives \* 12 \+ \(s\.freight \|\| 0\) \* 2/.test(m[1]), 'Holmgard settlement pays 2 dirhams per freight unit');
 ok(m[1].indexOf("freight silver, counted on the spot") >= 0, 'settlement text spells out the freight payment');
@@ -610,6 +610,23 @@ ok(['logEncode','logDecode','logFill','logRestore','Carry your ship','logcode'].
 ok(m[1].indexOf('function sbRank(row)') >= 0 && m[1].indexOf('sbRank(_row);') >= 0, 'every scored run also fetches its standing at the landing');
 ok(m[1].indexOf('Among the skippers at') >= 0 && m[1].indexOf('logged ventures at') >= 0, 'the settlement card shows the landing\u2019s top five and your standing');
 ok(m[1].indexOf('d.rank > 5') >= 0, 'your row is highlighted in amber when you sit below the top five');
+
+// round 51 / his batch: purse visible on every leg + the Greek market at Cherson (his design call, hold space is the cap)
+ok(m[1].indexOf("<span>Purse <b>' + S.silver + '</b> dirhams</span>") >= 0, 'the purse shows in the top bar on legs 2+ (the missing-dirhams fix)');
+ok(m[1].indexOf("a === 'buygreek'") > 0 && m[1].indexOf("s.hub === 'cherson'") > 0, 'the Greek market sells at Cherson only');
+ok(m[1].indexOf('pays 6 dirhams at Miklagard') >= 0, 'the buy button teaches the payout');
+ok(m[1].indexOf("s.silver += s.greek * 6") >= 0 && m[1].indexOf("Greek houses takes the") >= 0, 'the factor pays out at the Horn and the settlement card says so');
+ok(m[1].indexOf("s.furs + s.captives * 2 + (s.freight || 0) + (s.greek || 0)") >= 0, 'hold space counts Greek bales against the cap');
+// behaviour: buy bales at Cherson, check the payout maths via the finale
+g.jumpTest(4);
+g.S.silver = 12;
+g.hub3('buygreek'); g.hub3('buygreek'); g.hub3('buygreek');
+ok(g.S.greek === 3 && g.S.silver === 3 && g.HMG.holdUsed(g.S) === 3, 'three bales bought at Cherson: 9 dirhams spent, 3 hold units used');
+g.hub3('buygreek');
+ok(g.S.greek === 4 && g.S.silver === 0, 'the last dirhams can go into the fourth bale');
+const fin = g.HMG.ending3(g.S);
+ok(fin.silver === 24 && fin.text.indexOf('Greek houses takes the 4 bales') >= 0, 'the finale pays the factor\u2019s 6 a bale: 24 dirhams to the purse, card text included');
+global.localStorage.removeItem('hmg01save');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
