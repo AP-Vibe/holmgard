@@ -355,5 +355,9 @@ g.S.scoreSaved = false;
 g.boardSave('Tester');
 ok(JSON.parse(global.localStorage.getItem('hmg01board')).length === 1 && JSON.parse(global.localStorage.getItem('hmg01board'))[0].n === 'keeper', 'a test run is never written to the skippers\u2019 board');
 global.localStorage.removeItem('hmg01board');
+
+// round 40: the version bump (his question: canvas was still labelled 0.2 after leg 3 shipped)
+ok(m[1].indexOf('0.3 — The Road to Miklagard') >= 0 && m[1].indexOf('0.2 — The Crossing') < 0, 'title screen says 0.3 — The Road to Miklagard, no 0.2 label remains');
+ok(md.indexOf('0.3 The Road to Miklagard (Prototype)') >= 0, 'canvas frontmatter title bumped to 0.3');
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
