@@ -173,7 +173,8 @@ var HMG = (function () {
     { id: 'nets' }, { id: 'hearth' }
   ];
   // the Greek sea run: round-1 placeholder deck (build round 4 gives the sea its own weather)
-  var SEA3 = [ { id: 'fair' }, { id: 'rain' }, { id: 'aurora' }, { id: 'fog' }, { id: 'seam' } ];
+  // build round 4: the Greek sea run (Cherson to Miklagard) — the summons wait, the escort, the coastal storm, Mesembria, St Aitherios
+  var SEA3 = [ { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' }, { id: 'cstorm' } ];
   // build round 2 (his go, per the signed brief): the real decks — the Lovat/portage subleg and the Dnieper subleg
   var LOVAT3 = [
     { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' },
@@ -203,6 +204,12 @@ var HMG = (function () {
       if (s.sub === 1) {   // the Lovat shallows and the watershed portage are the subleg's spine, each once
         if (!s.flags.l3Lovat && s.progress >= 30) { s.flags.l3Lovat = true; return { id: 'lovat' }; }
         if (!s.flags.l3Port && s.progress >= 70) { s.flags.l3Port = true; return { id: 'portage3' }; }
+      }
+      if (s.sub === 4) {   // build round 4: the sea run's spine — the summons, the escort, Mesembria, St Aitherios
+        if (!s.flags.l3Summ && s.progress < 12) { s.flags.l3Summ = true; return { id: 'summons' }; }
+        if (!s.flags.l3Esc && s.progress >= 35) { s.flags.l3Esc = true; return { id: 'escort' }; }
+        if (!s.flags.l3Mes && s.progress >= 60) { s.flags.l3Mes = true; return { id: 'mesembria' }; }
+        if (!s.flags.l3Aith && s.progress >= 82) { s.flags.l3Aith = true; return { id: 'statherios' }; }
       }
       if (s.sub === 3) {   // build round 3: the rapids road's spine — the first rapids, Nenasytets, Khortytsia, the delta
         if (!s.flags.l3Rap && s.progress >= 20) { s.flags.l3Rap = true; return { id: 'rapids1' }; }
@@ -455,6 +462,28 @@ var HMG = (function () {
         if (i === 0) { if (rand(s) < 0.5) adj(s, { progress: 14 }); else adj(s, { hull: -12, progress: 6 }); }
         else adj(s, { progress: 5 });
         break;
+      // build round 4: the Greek sea run
+      case 'summons':   // the St Mamas wait: the empire's paper decides who sails
+        if (i === 0) { s.silver = Math.max(0, s.silver - 3); adj(s, { progress: 8 }); }   // grease the clerk's hand
+        else adj(s, { progress: 3 });                                                                                     // wait your turn before the white bluffs
+        break;
+      case 'escort':   // the imperial dromons, per the treaty
+        if (i === 0) adj(s, { progress: 10, morale: 1 });                                  // fall in with the escort
+        else adj(s, { progress: 13 });                                                                                     // sail apart, faster and alone
+        break;
+      case 'cstorm':   // the Black Sea storm
+        if (i === 0) adj(s, { hull: -10, progress: 8 });
+        else if (i === 1) { s.silver = Math.max(0, s.silver - 4); adj(s, { progress: 5 }); }   // put in at a fisher haven
+        else { if (rand(s) < 0.5) adj(s, { progress: 15, morale: 1 }); else adj(s, { hull: -25, wet: 1, morale: -2 }); }
+        break;
+      case 'mesembria':   // the Mesembria landfall: tar, water, the last cheap bread
+        if (i === 0) { s.silver = Math.max(0, s.silver - 2); adj(s, { food: 15, hull: 10, progress: 3 }); }
+        else adj(s, { progress: 11 });
+        break;
+      case 'statherios':   // St Aitherios: the last re-rig on the imperial road
+        if (i === 0) adj(s, { hull: 12, progress: 4 });
+        else adj(s, { progress: 9, morale: 1 });
+        break;
     }
     endOfDay(s);
   }
@@ -591,6 +620,7 @@ var HMG = (function () {
       s.flags.l3Port = false;
       s.flags.l3Rap = false; s.flags.l3Nen = false; s.flags.l3Khor = false;   // build round 3: the rapids-road gates
       s.flags.l3Delta = false; s.flags.l3Parley = false;
+      s.flags.l3Summ = false; s.flags.l3Esc = false; s.flags.l3Mes = false; s.flags.l3Aith = false;   // build round 4: the sea gates
       s.lastEv = [];
       s.pending = drawMorning(s);
       s.phase = 'day';
@@ -732,7 +762,13 @@ var HMG = (function () {
     nenasytets: { title: 'Nenasytets, the insatiable', text: 'The great rapid \u2014 \'The one that cannot be sated.\' The whole river falls through a throat of stone, and no loaded keel lives in it. The Rus walk everything six miles by the portage path, captives on the chain-line ahead, and drag the empty hull through with volunteers on the rope. Chained men walk slowly. Unchained men sometimes do not walk the whole way.', opts: ['Walk everything the six miles, drag the hull light (slow, a captive may bolt on the chain-line)', 'Drag the empty boat through with volunteers (the rope may hold)', 'Run it loaded \u2014 no Rus keel dares this (a fool\u2019s saving, the hull may not live)'] },
     khortytsia: { title: 'The great island', text: 'Below the last of the falls the river splits round a great green island, and the Rus yiels call it holy ground. The old rite here: cast the lots, and if they come up good, sacrifice the cock. The crew look at you, then at the cock. There is, as the traders say, only one way to know.', opts: ['Keep the old rites \u2014 a cock for the island (spirits rise)', 'Press on without them (the crows watch you go)'] },
     parley: { title: 'The Pecheneg come to the bank', text: 'Horsemen on the bluff, tall saddles and horn bows, unhurried as weather. This summer they are at peace \u2014 the kind of peace that holds while it is fed. They will trade horned cattle for silver, take good iron at a fair word, or take offense if it is offered. Offense, on this shore, is paid for on the spot.', opts: ['Buy horned cattle (5 dirhams \u2014 meat aboard, the parley holds)', 'Sell ironwork to them (they pay well for good iron)', 'Wave them off from the water (fast \u2014 but a fumbled parley can cost a man where he stands)'] },
-    delta: { title: 'The reeds and the channels', text: 'The river forgets her banks and braids across a plain of reed islands \u2014 channels everywhere, none of them promising. The convoy men say the deepest thread runs close under the far sand bluff. The convoy men are not here.', opts: ['Thread the deep channel fast (a gamble on the sand)', 'Take the slow channel with the poles (safe, a lost day)'] }
+    delta: { title: 'The reeds and the channels', text: 'The river forgets her banks and braids across a plain of reed islands \u2014 channels everywhere, none of them promising. The convoy men say the deepest thread runs close under the far sand bluff. The convoy men are not here.', opts: ['Thread the deep channel fast (a gamble on the sand)', 'Take the slow channel with the poles (safe, a lost day)'] },
+    // build round 4: the Greek sea run (per the signed brief)
+    summons: { title: 'The summons wait', text: 'The white bluffs of St Mamas, and the empire\u2019s patience: no Rus keel clears the water without its summons. The clerks on the jetty hold the seals like weather. There is a queue, and there is a way through a queue.', opts: ['Grease the clerk\u2019s hand (3 dirhams — your seal is cut the same day)', 'Wait your turn honestly before the bluffs (the season burns, the seal comes)'] },
+    escort: { title: 'The dromons come out', text: 'Out of the haze, two imperial dromons — high sterns, bronze pipes glittering at the bows. The treaty letter is plain: the Rus sail under the emperor\u2019s eye from Cherson to the Horn, or answer for themselves alone.', opts: ['Fall in with the escort (steady sailing, spirits rise)', 'Sail apart from the convoy (faster — and alone with the sea)'] },
+    cstorm: { title: 'A Black Sea storm', text: 'The horizon bruises and the wind comes off the steppe-water like a shoulder. Coasting here you are never far from a lee shore, and never far from deep water either. The hands look at the sky, then at you.', opts: ['Hold out to sea and take it (the ship suffers, the day is kept)', 'Put in at a fisher haven and ride it out (4 dirhams of ground tackle)', 'Run the coast before it (fast — if the timing holds)'] },
+    mesembria: { title: 'The Mesembria landfall', text: 'A Greek harbour town under its headland, tile roofs and church bells, fishermen hawking the day\u2019s catch. The last soft water and cheap bread before the capital; the last honest tar, too.', opts: ['Lay over half a day — water, bread, tar and pitch (2 dirhams, hull and larder mend)', 'Stand off and on, straight for the Horn (good speed)'] },
+    statherios: { title: 'St Aitherios on the cape', text: 'A staging shrine on the last cape, keels moored two and three deep, riggers splicing for anyone with coin — or without. Past here it is one day\u2019s open water, then the Walls: the Horn and the city beyond counting.', opts: ['Re-rig the spare and patch every seam (the hull answers)', 'Hold course with what you have — the crew can taste the Horn (good speed, spirits rise)'] }
   };
 
   function currentEvent(s) {
@@ -940,7 +976,7 @@ function viewHelp() {
     '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg — near 500 sea-miles, a fair crossing 15\u201320 days. Second: upriver to Holmgard — near 120 miles, 15\u201320 days loaded. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
     '<div><span>The landing \u2014 between the legs</span>At Aldeigjuborg the cloth is scored and paid out. The hub screen follows: hire hands from the beach, load furs (2 dirhams, 1 hold unit) or a captive (4 dirhams, 2 hold units), or take a merchant\u2019s freight bale (free, 1 hold unit, pays 2 dirhams at Holmgard \u2014 good silver when the purse runs thin, but it crowds out furs), then cast off up the river. The hold fits 12 units.</div>' +
     '<div><span>Captives \u2014 hold and pot</span>A captive is cargo that eats: one ration a day, counted in the day\u2019s mouths. If the pot runs dry, the crew eats first, the captives go hungry, and the crew hears them (spirits drop). At the rapids, walking them round means one may bolt for the woods.</div>' +
-    '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Gnezdovo, down the Dnieper to Kiev, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears Kiev early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Gnezdovo pays at Kiev; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. The rapids road below Kiev: warp through on lines, run under oar, or walk the cargo round — Nenasytets is the big one, and a captive on the chain-line may bolt. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin.</div>' +
+    '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Gnezdovo, down the Dnieper to Kiev, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears Kiev early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Gnezdovo pays at Kiev; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. The rapids road below Kiev: warp through on lines, run under oar, or walk the cargo round — Nenasytets is the big one, and a captive on the chain-line may bolt. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin. The Greek sea: the summons seals at Cherson decide who sails, the treaty dromons escort what they can see — Mesembria has the last cheap bread, St Aitherios the last re-rig, and then the Horn.</div>' +
     '<div><span>The convoy window \u2014 day 32 (May 11)</span>The thaw clears Ladoga and the early southbound convoys leave the landing. Arrive after day 32 and the buyer pays half; drag past day 44 and the Kiev road closes for good.</div>' +
     '<div><span>Names \u2014 chips under the bar</span>Your crew. Each is a person who lives or dies by your choices, and each death costs 10 dirhams of the settlement and slows the boat.</div>' +
     '</div>' +
@@ -1056,7 +1092,8 @@ function hub3Img(hub) {
 var ARTKEY = { fair: 'calm', seam: 'calm', w1: 'calm', squall: 'storm', chud: 'village', w2: 'halfr', lowwater: 'fog', portage: 'seals',
   // build round 2: the southern decks wear the leg-1 scene art (SVT fallback if a key misses)
   lovat: 'fog', portage3: 'seals', ilmenstorm: 'storm', hoard: 'chud', tailwind: 'calm', fmarket: 'village', ferry: 'seals', kinsman: 'chud',
-  rapids1: 'seals', nenasytets: 'storm', khortytsia: 'village', parley: 'chud', delta: 'fog' };
+  rapids1: 'seals', nenasytets: 'storm', khortytsia: 'village', parley: 'chud', delta: 'fog',
+  summons: 'fog', escort: 'storm', cstorm: 'storm', mesembria: 'village', statherios: 'seals' };
 function sceneImg(key) {
   if (!key || !ART[key]) return '';
   return '<img class="scene-img" src="' + ART[key] + '" alt=""/>';
