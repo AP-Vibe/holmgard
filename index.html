@@ -827,30 +827,6 @@ function runScore(r) {
 function boardGet() {
   try { return JSON.parse(SR.get(KEYB) || '[]'); } catch (e) { return []; }
 }
-/* carry-your-log: the preview's storage can be wiped between canvas updates,
-   so the skippers' board can be exported as a code and restored after a reset */
-function logEncode(b) { return btoa(unescape(encodeURIComponent(JSON.stringify(b)))); }
-function logDecode(t) { return JSON.parse(decodeURIComponent(escape(atob(t)))); }
-function logFill() {
-  var el = document.getElementById('logcode');
-  if (el) el.value = logEncode(boardGet());
-}
-function logRestore() {
-  var el = document.getElementById('logcode');
-  if (!el || !el.value || !el.value.trim()) return;
-  try {
-    var b = logDecode(el.value.trim());
-    if (!Array.isArray(b)) throw new Error('not a log');
-    b = b.filter(function (e) { return e && typeof e.s === 'number' && e.n; })
-      .slice(0, 10)
-      .map(function (e) { return { n: String(e.n).slice(0, 18), s: e.s | 0, d: e.d | 0, m: e.m | 0, t: e.t, g: e.g || 'Aldeigjuborg' }; });
-    SR.set(KEYB, JSON.stringify(b));
-    save();
-    render();
-  } catch (e) {
-    alert('That log code does not read as a skippers\u2019 board.');
-  }
-}
 function boardSave(name) {
   if (S.flags && S.flags.test) { S.scoreSaved = true; return; }   // test runs never enter the skippers\u2019 board
   var r = S.result, sc = runScore(r);
@@ -861,7 +837,9 @@ function boardSave(name) {
   b.sort(function (x, y) { return y.s - x.s; });
   b = b.slice(0, 10);
   SR.set(KEYB, JSON.stringify(b));
-  sbPush({ n: nm, s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' });   // round 49: row it to the far-shore board too (offline-safe)
+  var _row = { n: nm, s: sc.total, d: r.days, m: r.marks, t: r.tier, g: r.dest || 'Aldeigjuborg' };
+  sbPush(_row);   // round 49: row it to the far-shore board too (offline-safe)
+  sbRank(_row);   // round 50: and fetch where this venture stands at that landing
   S.scoreSaved = true;
   save();
   keepScroll = true;  // don't yank the view to the top when the score lands
@@ -879,20 +857,34 @@ function boardHtml(limit) {
 var BOARDAPI = 'https://xhruovtrxfsclfrgtezh.supabase.co/rest/v1/hmg_board';   // round 49: the far-shore board lives on Supabase; the publishable key below is public by design, everything else is enforced server-side
 var SBAUTH = 'sb_publishable_L82ToLtxE7lnWlpiMxxP6Q_5IONSlAZ';
 function sbEsc(x) { return String(x == null ? '' : x).replace(/&/g, '&' + 'amp;').replace(/</g, '&' + 'lt;').replace(/>/g, '&' + 'gt;').replace(/"/g, '&' + 'quot;'); }
+function sbRank(row) {   // round 50: where this venture stands among the skippers who reached the same landing
+  if (!BOARDAPI || !SBAUTH || !row) return;
+  fetch(BOARDAPI + '?select=n,s&g=eq.' + encodeURIComponent(row.g) + '&order=s.desc&limit=200', { headers: { 'apikey': SBAUTH, 'Authorization': 'Bearer ' + SBAUTH } })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      rows = Array.isArray(rows) ? rows : [];
+      var rank = 1, i = 0;
+      while (i < rows.length && (rows[i].s | 0) >= row.s) { rank++; i++; }
+      window.sbRankData = { g: row.g, s: row.s, rank: rank, total: rows.length + 1, top: rows.slice(0, 5) };
+      if (S && S.phase === 'end') render();
+    })
+    .catch(function () {});
+}
 function sbPush(row) {
   if (!BOARDAPI || !SBAUTH || !row) return;
   fetch(BOARDAPI, { method: 'post', headers: { 'apikey': SBAUTH, 'Authorization': 'Bearer ' + SBAUTH, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify([row]) })
     .then(function (r) { if (r.ok) toast('Your run is rowed to the far-shore board.'); else toast('The far-shore board refused that log (' + r.status + ').'); })
     .catch(function () {});   // offline or blocked: the run is already safe in the local board
 }
-function sbPull() {
-  window.sbMsg = 'Rowing to the far-shore board\u2026'; render();
+function sbPull(silent) {
+  if (!silent) { window.sbMsg = 'Rowing to the far-shore board\u2026'; render(); }
   fetch(BOARDAPI + '?select=n,s,d,m,t,g&order=s.desc&limit=120', { headers: { 'apikey': SBAUTH, 'Authorization': 'Bearer ' + SBAUTH } })
     .then(function (r) { return r.json(); })
     .then(function (rows) { window.sbRows = (Array.isArray(rows) ? rows : []); window.sbMsg = ''; render(); })
-    .catch(function () { window.sbRows = null; window.sbMsg = 'The far shore could not be reached \u2014 the shared board needs open water (a network).'; render(); });
+    .catch(function () { window.sbRows = null; window.sbMsg = 'The far shore could not be reached \u2014 the shared board needs open water (a network).'; if (!silent) render(); });
 }
 function sharedHtml() {
+  if (window.sbAuto !== 1 && !window.sbRows) { window.sbAuto = 1; sbPull(true); }   // round 50: quiet auto-pull, once per load
   var h = '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">The skippers\u2019 far-shore board (all players)</summary>' +
     '<p class="mut" style="font-size:13px;margin:8px 0">Every finished run on the shared board of the road \u2014 the top twenty of each landing. Pull it below (needs the open water).</p>' +
     '<button class="small" onclick="sbPull()">Pull the far-shore board</button>' +
@@ -1167,12 +1159,6 @@ function viewTitle() {
     '</details>';
   b += boardHtml(5);
   b += sharedHtml();
-  b += '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Carry your ship\u2019s log (survives board resets)</summary>' +
-    '<p class="mut" style="font-size:13px;margin:8px 0">If the board resets, copy this code somewhere safe and paste it back later.</p>' +
-    '<textarea id="logcode" rows="3" style="width:100%;box-sizing:border-box;font-size:12px;background:#1a2129;color:#c8d2dc;border:1px solid #2c3947;border-radius:6px;padding:8px"></textarea>' +
-    '<button class="small" onclick="logFill()">Fill with this device\u2019s log</button> ' +
-    '<button class="small" onclick="logRestore()">Restore from the code above</button>' +
-    '</details>';
   return b;
 }
 function resumeGame() {
@@ -1333,6 +1319,17 @@ function viewEnd() {
     (function () {
       if (!S.scoreSaved) boardSave(S.name);   // every leg\u2019s end scores itself: no forms, no friction
       return '<p class="hint">Scored on the skippers\u2019 board as <b>' + (S.name || 'The skipper') + '</b> \u2014 ' + (r.dest || 'Aldeigjuborg') + '.</p>';
+    })() +
+    (function () {   // round 50: the landing\u2019s leaderboard, right where the score lands
+      var d = window.sbRankData;
+      if (!d || d.g !== (r.dest || 'Aldeigjuborg') || d.s !== sc.total) return '';
+      var h = '<div class="tally" style="margin:2px 0 10px"><div class="row big"><span>Among the skippers at ' + sbEsc(d.g) + '</span><span></span></div>';
+      d.top.forEach(function (e, i) {
+        h += '<div class="row"><span>' + (i + 1) + '. ' + sbEsc(e.n || 'The skipper') + '</span><span>' + (e.s | 0) + '</span></div>';
+      });
+      if (d.rank > 5) h += '<div class="row"><span>\u2026</span><span></span></div><div class="row"><span style="color:var(--amber)">' + d.rank + '. ' + sbEsc(S.name || 'The skipper') + ' \u2014 this venture</span><span style="color:var(--amber)">' + d.s + '</span></div>';
+      h += '<div class="row"><span>Standing</span><span>' + d.rank + ' of ' + d.total + ' logged ventures at ' + sbEsc(d.g) + '</span></div></div>';
+      return h;
     })() +
     ((r.how === 'arrived' && S.leg === 1)
       ? '<button class="primary" onclick="toHub()">Continue to Holmgard</button>' +
