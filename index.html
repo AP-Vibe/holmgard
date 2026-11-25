@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Holmgard and beyond — 0.3 The Road to Miklagard</title>
+<link rel="manifest" href="./manifest.webmanifest" />
+<title>Holmgard and beyond — 0.4 The Road to Miklagard</title>
 <style>
   :root {
     --bg: #10161d;
@@ -94,7 +95,7 @@
 <body>
 <div id="wrap">
   <div id="app"><div class="sub">loading…</div></div>
-  <div class="footer"><details><summary>Holmgard and beyond — 0.3 “The Road to Miklagard” · prototype · notes on the draft</summary><p>draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The river\’s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name Hólmgarðr is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</p></details></div>
+  <div class="footer"><details><summary>Holmgard and beyond — 0.4 “The Road to Miklagard” · public release · notes on the draft</summary><p>draft content: the crew, the buyers and the waystation are invented; the route, dirham economy and trade frame follow the project research runs; attested prices are sparse — food, fur and captive prices here are design-tuned, not history. The river\’s low-water sandbars and the Gostinopol bypass rapids follow the historical river — medieval keels could not pass the rapids loaded (1269 Novgorod treaty: cargo reloaded, boats warped and piloted); leg lengths and weather are design-tuned to the research, individual days are not. "Holmgard" here stands for the trading settlement of c. 911/912 — archaeologically the Rurikovo Gorodishche site; the town across the river grows to prominence later, but the Norse name Hólmgarðr is attested. Scene art is the embedded HD-2D set — WIP pending the final pass.</p></details></div>
 </div>
 <script>
 var HMG = (function () {
@@ -873,89 +874,8 @@ function boardHtml(limit) {
   }).join('');
   return '<div class="tally" style="margin-top:10px"><div class="row big"><span>Skippers\u2019 board — all crossings, every fate</span><span></span></div>' + rows + '</div>';
 }
-/* ---------- cloud board (Google Apps Script backend; degrades gracefully without it) ---------- */
-var KEYC = 'hmg01cloud', KEYL = 'hmg01local';  // KEYL: runs captured on this device while the cloud was unreachable
-var CLOUDDEFAULT = 'https://script.google.com/macros/s/AKfycbxi-27DJ3YxDunf5qX2EWrSi0HLxQY8Bs_vR_v54qCcs8cuEN3_v3Ll3c0to9MVwwVIcQ/exec';  // his deployment, round 18b — update in place, never a new deployment
-function cloudUrl() { return (SR.get(KEYC) || CLOUDDEFAULT).trim(); }
-var CLOUDSEED = [];  // baked snapshot of the live cloud board, refreshed by Vibe at each canvas rebuild
-function cloudLocal() { try { return JSON.parse(SR.get(KEYL) || '[]'); } catch (e) { return []; } }
-function cloudSaveLocal(rows) {
-  var L = cloudLocal();
-  var fresh = (rows || []).filter(function (r) {
-    return !L.some(function (k) { return k.n === r.n && k.s === r.s && k.d === r.d && k.t === r.t && k.g === r.g; });
-  });
-  L = L.concat(fresh).sort(function (a, b) { return (b.s | 0) - (a.s | 0); }).slice(0, 20);
-  SR.set(KEYL, JSON.stringify(L));
-  return L;
-}
-function cloudFallback() {
-  var L = cloudLocal().map(function (e) { e.loc = 1; return e; });
-  var merged = (CLOUDSEED || []).concat(L);
-  merged.sort(function (a, b) { return (b.s | 0) - (a.s | 0); });
-  return merged.slice(0, 10);
-}
-function cloudSet() {
-  var el = document.getElementById('cloudurl');
-  if (!el) return;
-  SR.set(KEYC, el.value.trim());
-  window.cloudMsg = el.value.trim() ? 'Board address saved. Pull or push when you like.' : 'Custom address cleared — back to the built-in board address.';
-  render();
-}
-function cloudRows() {
-  var b = boardGet();
-  var rows = b.map(function (e) { return { n: e.n, s: e.s, d: e.d, m: e.m, t: e.t, g: e.g || 'Aldeigjuborg' }; });
-  return rows;
-}
-function cloudPush() {
-  var u = cloudUrl();
-  if (!u) { window.cloudMsg = 'Set the board address first.'; render(); return; }
-  window.cloudMsg = 'Pushing your log upstream\u2026';
-  fetch(u, { method: 'post', body: JSON.stringify({ rows: cloudRows() }) })
-    .then(function (r) { window.cloudMsg = r.ok ? 'Your log is on the cloud board.' : 'The cloud board refused that push (' + r.status + ').'; render(); })
-    .catch(function (err) {
-      cloudSaveLocal(cloudRows());
-      window.cloudBoard = cloudFallback(); window.cloudMode = 'local';
-      window.cloudMsg = 'Could not reach the cloud board — ' + ((err && err.message) ? String(err.message).slice(0, 80) : 'no error text') + '. Your log is saved on this device and shown below as saved here; a push from a plain browser tab will reach the shared board.';
-      render();
-    });
-}
-function cloudPull() {
-  var u = cloudUrl();
-  if (!u) { window.cloudMsg = 'Set the board address first.'; render(); return; }
-  window.cloudMsg = 'Rowing to the cloud board\u2026';
-  fetch(u)
-    .then(function (r) { return r.json(); })
-    .then(function (j) {
-      var live = (j && j.rows) ? j.rows : [];
-      var L = cloudLocal().map(function (e) { e.loc = 1; return e; });
-      window.cloudBoard = live.concat(L).sort(function (a, b) { return (b.s | 0) - (a.s | 0); }).slice(0, 10);
-      window.cloudMode = 'live';
-      window.cloudMsg = 'Cloud board pulled.';
-      render();
-    })
-    .catch(function (err) {
-      window.cloudBoard = cloudFallback(); window.cloudMode = 'local';
-      window.cloudMsg = 'Could not reach the cloud board — ' + ((err && err.message) ? String(err.message).slice(0, 80) : 'no error text') + '. Showing the baked board snapshot plus runs saved on this device.';
-      render();
-    });
-}
-function cloudHtml() {
-  var u = cloudUrl();
-  var msg = window.cloudMsg || '';
-  var cb = window.cloudBoard || cloudFallback();
-  var rows = cb.map(function (e, i) {
-    return '<div class="row"><span>' + (i + 1) + '. ' + String(e.n || '').slice(0, 18) + (e.loc ? ' <span class="mut">· saved here</span>' : '') + '</span><span>' + (e.s | 0) + ' <span class="mut">— ' + (e.g || 'Aldeigjuborg') + ', day ' + (e.d | 0) + ', ' + (e.m | 0) + ' dirhams</span></span></div>';
-  }).join('');
-  return '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Cloud skippers\u2019 board (optional)</summary>' +
-    '<p class="mut" style="font-size:13px;margin:8px 0">Paste the web-app address of your Apps Script leaderboard to share the board between devices.</p>' +
-    '<input id="cloudurl" class="boardinput" placeholder="https://script.google.com/macros/s/\u2026/exec" value="' + u.replace(/"/g, '&quot;') + '"/>' +
-    '<button class="small" onclick="cloudSet()">Save the address</button> ' +
-    '<button class="small" onclick="cloudPush()">Push this device\u2019s log</button> ' +
-    '<button class="small" onclick="cloudPull()">Pull the cloud board</button> ' +
-    (msg ? '<p class="mut" style="font-size:13px;margin:6px 0">' + msg + '</p>' : '') +
-    (rows ? '<div class="tally" style="margin-top:8px"><div class="row big"><span>Cloud board — far shores</span><span></span></div>' + (window.cloudMode === 'live' ? '' : '<p class="mut" style="font-size:12px;margin:2px 0">Baked snapshot plus runs saved on this device — the live board was not reachable from this window.</p>') + rows + '</div>' : '') +
-    '</details>';
-}
+/* ---------- skippers’ board ---------- */
+var BOARDAPI = '';   // round 49: the shared-board endpoint goes here (empty = the board stays on this device)
 var S = null;
 var inTitle = true;
 var inHelp = false;
@@ -1192,7 +1112,7 @@ function viewTitle() {
   var saved = SR.get(KEY);
   var seed = SR.get(KEYS);
   var b = '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.3 — The Road to Miklagard</div>' +
+    '<div class="sub">0.4 — The Road to Miklagard</div>' +
     '<div class="card"><p class="hint center">Prototype: the lake crossing, the landing at Aldeigjuborg, the river road to Holmgard, and now the southern water-road: Gnezdovo, Kiev, the rapids and the Greek sea to Miklagard.</p>';
   b += '<button class="primary" onclick="newGame()">A new crossing</button>';
   b += '<button class="small" onclick="showHelp(\'title\')">How to play</button>';
@@ -1211,7 +1131,6 @@ function viewTitle() {
     '<button class="small" onclick="jumpTest(4)">Third leg — Cherson (day 114, 24 dirhams)</button>' +
     '</details>';
   b += boardHtml(5);
-  b += cloudHtml();
   b += '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Carry your ship\u2019s log (survives board resets)</summary>' +
     '<p class="mut" style="font-size:13px;margin:8px 0">If the board resets, copy this code somewhere safe and paste it back later.</p>' +
     '<textarea id="logcode" rows="3" style="width:100%;box-sizing:border-box;font-size:12px;background:#1a2129;color:#c8d2dc;border:1px solid #2c3947;border-radius:6px;padding:8px"></textarea>' +
@@ -1230,7 +1149,7 @@ function resumeGame() {
 function viewIntro() {
   var crew = S.crew.map(function (c) { return c.name + ', ' + c.role; }).join(' · ');
   return '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.3 — The Road to Miklagard</div>' +
+    '<div class="sub">0.4 — The Road to Miklagard</div>' +
     '<div class="card contract">' +
     '<h2 class="serif" style="margin-top:0">Birka, the 1st of September</h2>' +
     '<p>The merchant Halvdan weighs three bales of Gotland cloth into the hold of your knarr — half a year of someone\u2019s weaving. He speaks a number, and it is a good one.</p>' +
@@ -1508,6 +1427,7 @@ function render() {
   }
 }
 if (SR.get(KEY)) loadSlot();   // boot: restore the skippers' board from the save slot
+if (typeof navigator !== 'undefined' && navigator.serviceWorker) { try { navigator.serviceWorker.register('./sw.js'); } catch (e) {} }   // offline cache after first load
 render();
 </script>
 </body>
