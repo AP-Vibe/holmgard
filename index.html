@@ -174,13 +174,31 @@ var HMG = (function () {
   ];
   // the Greek sea run: round-1 placeholder deck (build round 4 gives the sea its own weather)
   var SEA3 = [ { id: 'fair' }, { id: 'rain' }, { id: 'aurora' }, { id: 'fog' }, { id: 'seam' } ];
+  // build round 2 (his go, per the signed brief): the real decks — the Lovat/portage subleg and the Dnieper subleg
+  var LOVAT3 = [
+    { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' },
+    { id: 'nets' }, { id: 'hearth' },   // the quiet-water and shingle-camp events wear well on the Lovat too (round 24 numbers)
+    { id: 'ilmenstorm' },
+    { id: 'hoard', need: function (s) { return s.silver >= 3; } }   // the share of the rumor costs 3 dirhams
+  ];
+  var DNIPR3 = [
+    { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' },
+    { id: 'tailwind' },
+    { id: 'fmarket', need: function (s) { return s.silver >= 2; } },
+    { id: 'ferry', need: function (s) { return s.silver >= 2; } },
+    { id: 'kinsman' }
+  ];
   var HIRES = ['Audun', 'Thorstein', 'Ragnvald', 'Sverting'];  // hub hire pool, paid from the settlement purse
   var HOLD = 12;  // hold units: 1 per fur bale, 2 per captive
 
   function drawMorning(s) {
     // leg three runs the southern water-road: round-1 placeholder decks per subleg (the real rosters land with build rounds 2-4)
     if (s.leg === 3) {
-      var pool3 = (s.sub === 4) ? SEA3 : RIVER;
+      if (s.sub === 1) {   // the Lovat shallows and the watershed portage are the subleg's spine, each once
+        if (!s.flags.l3Lovat && s.progress >= 30) { s.flags.l3Lovat = true; return { id: 'lovat' }; }
+        if (!s.flags.l3Port && s.progress >= 70) { s.flags.l3Port = true; return { id: 'portage3' }; }
+      }
+      var pool3 = (s.sub === 4) ? SEA3 : (s.sub === 2) ? DNIPR3 : (s.sub === 3) ? RIVER : LOVAT3;
       var elig3 = pool3.filter(function (e) { return s.lastEv.indexOf(e.id) < 0; });
       if (!elig3.length) elig3 = pool3;
       var pick3 = elig3[Math.floor(rand(s) * elig3.length)];
@@ -264,7 +282,7 @@ var HMG = (function () {
       s.result = (s.leg === 2) ? ending2(s) : ending(s, 'arrived');
       return;
     }
-    if (s.progress >= VILLAGE_P && !s.flags.village) { s.phase = 'market'; s.pending = null; return; }
+    if (s.leg <= 2 && s.progress >= VILLAGE_P && !s.flags.village) { s.phase = 'market'; s.pending = null; return; }   // build round 2 fix: the waystation stop belongs to the crossing legs only, never the southern water-road
     s.pending = drawMorning(s);
     s.phase = 'day';
   }
@@ -337,6 +355,50 @@ var HMG = (function () {
       case 'hearth':
         if (i === 0) adj(s, { morale: 1, progress: 3 });              // songs till late by the fire
         else adj(s, { progress: 8 });                                 // turn in early, gone with the light
+        break;
+      // build round 2: the southern decks — the Lovat/portage subleg and the Dnieper subleg
+      case 'lovat':   // the Lovat shallows: the soft gate near Holmgard, thin-flood mechanics reskinned
+        if (i === 0) adj(s, { progress: 6 });
+        else {
+          if (rand(s) < 0.55) adj(s, { hull: -12, progress: 14 });
+          else adj(s, { hull: -22, progress: 14, wet: 1 });
+        }
+        break;
+      case 'portage3':   // the watershed portage: rollers built on site / teamsters hired / a gamble on the keel
+        if (i === 0) adj(s, { progress: 6, morale: -1 });
+        else if (i === 1) { if (s.silver >= 6) { s.silver -= 6; adj(s, { progress: 12 }); } else adj(s, { progress: 5, morale: -1 }); }
+        else {
+          if (rand(s) < 0.5) adj(s, { hull: -10, progress: 10 });
+          else adj(s, { hull: -18, progress: 10, wet: 1 });
+        }
+        break;
+      case 'ilmenstorm':   // storm on the Ilmen: numbers as the lake storm, rivers offer no sea room
+        if (i === 0) adj(s, { hull: -12, progress: 7, morale: -1 });
+        else if (i === 1) adj(s, { hull: -2, progress: 3 });
+        else { if (rand(s) < 0.5) adj(s, { progress: 13, morale: 1 }); else adj(s, { hull: -25, wet: 1 }); }
+        break;
+      case 'hoard':   // the hoard-rumor: a flavor gamble on the bank
+        if (i === 0) {
+          s.silver = Math.max(0, s.silver - 3);
+          if (rand(s) < 0.5) s.silver += 8; else adj(s, { morale: 1 });
+          adj(s, { progress: 4 });
+        } else adj(s, { progress: 7 });
+        break;
+      case 'tailwind':   // the Dnieper carries you: a free fast day
+        if (i === 0) adj(s, { progress: 12 });
+        else adj(s, { progress: 7, morale: 1 });
+        break;
+      case 'fmarket':   // a tribute-town fish market: fresh food cheap
+        if (i === 0) { s.silver = Math.max(0, s.silver - 2); adj(s, { food: 20, morale: 1, progress: 4 }); }
+        else adj(s, { progress: 9 });
+        break;
+      case 'ferry':   // the ferrymen hold the bank and their price stands
+        if (i === 0) { s.silver = Math.max(0, s.silver - 2); adj(s, { progress: 9 }); }
+        else adj(s, { progress: 5, morale: -1 });
+        break;
+      case 'kinsman':   // a face from the crossing at the bank fire
+        if (i === 0) { s.silver = Math.max(0, s.silver - 1); adj(s, { morale: 1, progress: 7 }); }
+        else adj(s, { food: -4, morale: 2, progress: 5 });
         break;
     }
     endOfDay(s);
@@ -470,6 +532,8 @@ var HMG = (function () {
       s.flags.rested = false;
       s.flags.feasted = false;
       s.flags.hubLift = false;
+      s.flags.l3Lovat = false;   // build round 2: the Lovat/portage gates belong to subleg 1 only
+      s.flags.l3Port = false;
       s.lastEv = [];
       s.pending = drawMorning(s);
       s.phase = 'day';
@@ -596,7 +660,16 @@ var HMG = (function () {
     lowwater: { title: 'The river runs thin', text: 'Sandbars stand yellow where last week the channel ran two fathoms. The pole confirms it: the river is near her bones already — this year even the spring flood ran thin — the old hands nod it through.', opts: ['Lay at anchor and wait for the water to deepen (safe, a slow morning)', 'Drag her over the bar with the crew in the shallows (fast, the hull may open on the sand)'] },
     portage: { title: 'The bypass rapids', text: 'The river throws itself white over the Gostinopol rift — the rapids that stand guard at Holmgard\u2019s door. Even the locals lose keels here; the old way round is goods walked along the bank and the boat warped up on lines.', opts: ['Warp her through the rift with lines from the bank (everyone hauls, the crew suffers)', 'Run the rapids under oar (very fast, the hull may open and a bale may soak)', 'Unship the cargo and walk it round the path (a whole safe day — but a walked captive may bolt for the woods)'] },
     nets: { title: 'The quiet water below the rift', text: 'Below the last white water the current slows and shoals, pike basking in the shallows where the river spreads wide. A night of nets here would fill the fish-boxes — but every hour at anchor is an hour lost upriver.', opts: ['Out with the nets (fresh food, a slow morning)', 'Trust to the pole and push on (good speed)'] },
-    hearth: { title: 'A night camp on the shingle', text: 'A dry bar of stones above the current, birchwood at hand. The hands look at the fire-pit and then at the pole — a night of songs would lift hearts gone thin on smoked fish, and cost the morning light.', opts: ['Sit the night by the fire — songs till late (spirits rise, a slow start)', 'Turn in early and be gone with the light (good speed)'] }
+    hearth: { title: 'A night camp on the shingle', text: 'A dry bar of stones above the current, birchwood at hand. The hands look at the fire-pit and then at the pole — a night of songs would lift hearts gone thin on smoked fish, and cost the morning light.', opts: ['Sit the night by the fire — songs till late (spirits rise, a slow start)', 'Turn in early and be gone with the light (good speed)'] },
+    // build round 2: the southern water-road decks (per the signed brief)
+    lovat: { title: 'The Lovat runs shallow', text: 'South of the town the river narrows to her early-summer bones — gravel bars standing yellow midstream, bargemen poling the shallows with their cargo on their backs. On the Dnieper side the water-road runs deep all the way to the Greek sea; on this side, the heights pay for the crossing.', opts: ['Wait out the morning for the channel to ease (safe, a slow watch)', 'Warp her over the bars with lines and shoulders (fast, the hull may open)'] },
+    portage3: { title: 'The watershed portage', text: 'Between the Lovat\u2019s headwaters and the Dnieper side the boats go overland — a stage of dry ground where the rivers forget each other. Slavic teamsters wait by the track with their wheels, asking honest money; the other road is rollers cut on site and the whole crew\u2019s backs.', opts: ['Build rollers on site and sweat her over (free, hard days)', 'Hire the teamsters with their wheels (6 dirhams, over by dusk)', 'Grease skids and gamble the keel on the first riffle (fast, the hull may open)'] },
+    ilmenstorm: { title: 'Storm on the Ilmen', text: 'The lake the Rus call the Great One stands up grey and white-maned under the leading of the wind — a short crossing, but open water all the same, and the knarr is loaded deep with the southern venture.', opts: ['Haul on and take it (the ship suffers, the day is kept)', 'Run for the reeds and wait it out (safe, a lost morning)', 'Race the storm\u2019s tail across (fast if you win the race)'] },
+    hoard: { title: 'A hoard-rumor at the landing', text: 'At the net-menders\u2019 fire a digger claims a cracked pot of dirhams under an old barrow, a morning\u2019s walk from here. He will sell the third of it for three dirhams and his silence. The old hands laugh. The old hands also look at the barrow.', opts: ['Buy the digger\u2019s share of the rumor (3 dirhams — a trifle or a bargain)', 'Count news worth more than silver and press on (good speed)'] },
+    tailwind: { title: 'The current does the rowing', text: 'The Dnieper takes the knarr on her shoulder like a mother with a child — broad brown water, wind over the quarter, the pools and reedbanks sliding past faster than any keel-man could ask.', opts: ['Ride the broad reach with watches shortened (very fast)', 'Keep the crew honest at the oars anyway (a steady watch, good spirits)'] },
+    fmarket: { title: 'A tribute-town on the bank', text: 'A stockaded town above the fish-stages, smoke and scales on the wind — the Krivich render their dusk here, and the fish-market is loud with it. Fresh-caught, cheap, and the men can smell it from the water.', opts: ['Buy the morning\u2019s catch (2 dirhams, fresh food, spirits rise)', 'Hold off the stages and push on (good speed)'] },
+    ferry: { title: 'The ferrymen\u2019s crossing', text: 'The broad channel bends at a bluff, and the ferrymen hold it — big dugouts, tarred and quiet, and a price that is not negotiable. Upstream everyone pays it; there is no other channel.', opts: ['Pay the crossing (2 dirhams, through by mid-day)', 'Stand off and look for your own way over (a lost morning, spirits dip)'] },
+    kinsman: { title: 'A kinsman from the crossing', text: 'By a bank fire a face you know lifts from the pot — a Chud spearman from the lake country, gone south with the fur-roads like half the world. He has news of the river ahead, and news wants paying for.', opts: ['Trade a dirham and gifts for his news (spirits rise, good speed)', 'Berth him aboard a night and share the porridge (costs food, the crew sings)'] }
   };
 
   function currentEvent(s) {
@@ -614,7 +687,7 @@ var HMG = (function () {
   return {
     newRun: newRun, applyChoice: applyChoice, marketAct: marketAct,
     hubAct: hubAct, enterHub: enterHub, holdUsed: holdUsed, ending2: ending2,
-    begin3: begin3, hub3Act: hub3Act, arrive3: arrive3, ending3: ending3, leg3Dest: leg3Dest,
+    begin3: begin3, hub3Act: hub3Act, arrive3: arrive3, ending3: ending3, leg3Dest: leg3Dest, drawMorning: drawMorning,
     HUB3N: HUB3N, FLEET: FLEET, SEACLOSE: SEACLOSE,
     currentEvent: currentEvent, dateStr: dateStr, moraleLabel: moraleLabel,
     begin: function (s) { s.pending = drawMorning(s); s.phase = 'day'; },
@@ -917,7 +990,9 @@ function hub3Img(hub) {
   if (hub === 'holmgard') return villageSVG('holmgard');   // the hub the river already has
   return (ART3[hub]) ? '<img class="scene-img" src="' + ART3[hub] + '" alt=""/>' : villageSVG('market');
 }
-var ARTKEY = { fair: 'calm', seam: 'calm', w1: 'calm', squall: 'storm', chud: 'village', w2: 'halfr', lowwater: 'fog', portage: 'seals' };
+var ARTKEY = { fair: 'calm', seam: 'calm', w1: 'calm', squall: 'storm', chud: 'village', w2: 'halfr', lowwater: 'fog', portage: 'seals',
+  // build round 2: the southern decks wear the leg-1 scene art (SVT fallback if a key misses)
+  lovat: 'fog', portage3: 'seals', ilmenstorm: 'storm', hoard: 'chud', tailwind: 'calm', fmarket: 'village', ferry: 'seals', kinsman: 'chud' };
 function sceneImg(key) {
   if (!key || !ART[key]) return '';
   return '<img class="scene-img" src="' + ART[key] + '" alt=""/>';
