@@ -34,7 +34,7 @@ function sceneImg(key) {
 }
 function riverImg(id) { return ART2[id] ? '<img class="scene-img" src="' + ART2[id] + '" alt=""/>' : ''; }
 function sceneSVG(id, leg) {
-  var _img = (leg === 3 && ART3EV[id]) ? ev3Img(id) : ((leg === 2 && ART2[id]) ? riverImg(id) : sceneImg(ARTKEY[id] || (ART[id] ? id : null)));
+  var _img = (leg === 3 && ART3EV[id]) ? ev3Img(id) : (((leg === 2 || leg === 3) && ART2[id]) ? riverImg(id) : sceneImg(ARTKEY[id] || (ART[id] ? id : null)));
   if (_img) return _img;
   var c = COL(id);
   var extra = '';
@@ -328,6 +328,7 @@ function viewEnd() {
 }
 function viewHub3() {
   var hub = S.hub || 'holmgard';
+  if (S.leg === 3 && (S.sub === 2 || S.sub === 3 || S.sub === 4) && !S.flags['sc3' + S.sub]) farArrival();   // round 53, his call: every arrival scores and boards, once per landing
   var usedH = HMG.holdUsed(S);
   var freeH = HMG.HOLD - usedH;
   var aliveN = S.crew.filter(function (c) { return !c.dead; }).length;
@@ -338,7 +339,7 @@ function viewHub3() {
   var names3 = { holmgard: 'Holmgard', gnezdovo: 'Gnezdovo — the smola-tar waystation', kiev: 'Kiev — the June gathering', cherson: 'Cherson — the emperor\u2019s gate' };
   var intro3 = {
     holmgard: 'The settlement silver is in your purse, and south of the town the water-road runs to the Greek sea. Load the southern venture — the road is long, and the hold is what it is.',
-    gnezdovo: 'Timber walls over the river, a tar smell on the water, ferrymen\u2019s news on the bank. They caulk keels here for the last long downstream. Seal the hull, rest, or take freight — the Dnieper runs from here.',
+    gnezdovo: 'The greatest settlement east of the Belt — timber walls over the river, a tar smell on the water, boatwrights\u2019 lanes and the Krivich traders\u2019 rows. The bank news: the June fleet gathers at Kiev, the Pecheneg summer holds for now, and a hoard rumor is making the rounds downstream. Caulk, provision, trade or take freight — the Dnieper runs from here.',
     kiev: 'The bluffs are black with beached keels and the gathering is loud on the sand. The fleet will not wait past its day. Whatever you carry now must pass the rapids road.',
     cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken — and the Greek market is open: wine, oil and glass bought here pay a factor\u2019s six dirhams a bale at Miklagard. Take the open water while the summons holds.'
   };
@@ -347,6 +348,8 @@ function viewHub3() {
   if (hub === 'holmgard' || hub === 'gnezdovo') gateTxt = 'Kiev gates the road: the June fleet clears about ' + HMG.dateStr(HMG.FLEET) + ' — miss it and you run the rapids alone. The sea closes at Cherson about ' + HMG.dateStr(HMG.SEACLOSE) + '.';
   if (hub === 'kiev') gateTxt = (S.flags.lateFleet ? '<b>The June fleet has sailed.</b> You will run the rapids alone — watch the hull and your parleys.' : 'The fleet waits a little yet. Do not linger; the summonses at Cherson stop about ' + HMG.dateStr(HMG.SEACLOSE) + '.');
   if (hub === 'cherson') gateTxt = 'The summons holds while the summer light lasts — about ' + Math.max(0, HMG.SEACLOSE - S.day) + ' days of season left. Past that, the sea closes.';
+  var ETA3 = { holmgard: 20, gnezdovo: 15, kiev: 20, cherson: 18 };   // round 53, his ask: measured sims (not pushed hard, one closing sentence)
+  gateTxt += ' The water ahead — average distance ' + ETA3[hub] + ' days.';
   return '<div class="card">' +
     '<div class="scene">' + hub3Img(hub) + '</div>' +
     '<h2 class="ev-title serif">' + names3[hub] + '</h2>' +
@@ -356,6 +359,7 @@ function viewHub3() {
     '<div class="row"><span>Purse</span><span>' + S.silver + ' dirhams</span></div>' +
     '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units — ' + freeH + ' free</span></div>' +
     '<div class="row"><span>Mouths to feed</span><span>' + m3 + ' eat ' + m3 + ' rations a day — ' + S.food + ' aboard, about ' + daysOf + ' days</span></div>' +
+    (function () { var L3 = { gnezdovo: 'Gnezdovo', kiev: 'Kiev', cherson: 'Cherson' }[S.hub]; if (!L3) return ''; return ((S.flags.arrivalScore && S.flags.arrivalScore.g === L3) ? '<div class="row"><span>Venture so far — scored at ' + L3 + '</span><span>' + S.flags.arrivalScore.m + ' dirhams aboard · score ' + S.flags.arrivalScore.s + ' on the skippers\' board</span></div>' : '') + ((window.sbRankData && window.sbRankData.g === L3) ? '<div class="row"><span>Among the skippers at ' + L3 + '</span><span>' + window.sbRankData.rank + ' of ' + window.sbRankData.total + ' logged ventures</span></div>' : ''); })() +
     ((hub === 'kiev' && S.flags.freightPaid) ? '<div class="row"><span>Freight settled here</span><span>' + S.flags.freightPaid + ' bale' + (S.flags.freightPaid === 1 ? '' : 's') + ' — ' + (S.flags.freightPaid * 2) + ' dirhams to the purse</span></div>' : '') +
     '<div class="row"><span>Loaded</span><span>' + S.furs + ' furs · ' + (S.freight || 0) + ' freight · ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') + ((S.greek) ? ' · ' + S.greek + ' Greek bale' + (S.greek === 1 ? '' : 's') : '') + '</span></div>' +
     '</div>' +
@@ -370,11 +374,16 @@ function viewHub3() {
     ((hub === 'cherson')
       ? '<button onclick="hub3(\'buygreek\')" ' + (S.silver < 3 || freeH < 1 ? 'disabled' : '') + '>Buy a bale of Greek goods <span class="mut">' + (S.silver < 3 ? '— purse too light (3 dirhams)' : (freeH < 1 ? '— hold full' : '— 3 dirhams · 1 unit · pays 6 dirhams at Miklagard')) + '</span></button>'
       : '') +
+    ((hub === 'gnezdovo')   // round 53, his call: the biggest settlement on the road offers the most
+      ? '<button onclick="hub3(\'buybread\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy bread and dried fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +20 rations') + '</span></button>' +
+        (S.furs ? '<button onclick="hub3(\'gsellfur\')">Sell furs to the smola factor <span class="mut">— ' + S.furs + ' bale' + (S.furs === 1 ? '' : 's') + ' · 2 dirhams each · to the purse</span></button>' : '') +
+        (S.captives ? '<button onclick="hub3(\'gsellcap\')">Sell captives to the factor <span class="mut">— ' + S.captives + ' head · 4 dirhams each · to the purse</span></button>' : '')
+      : '') +
     ((hub === 'holmgard')
       ? '<button onclick="hub3(\'buyfur\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (freeH < 1 ? '— hold full' : '— 2 dirhams · 1 unit · pays 5 at Miklagard')) + '</span></button>' +
         '<button onclick="hub3(\'buycap\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Take a captive <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : (freeH < 2 ? '— hold full' : '— 4 dirhams · 2 units · walks and eats')) + '</span></button>' +
-        (S.furs ? '<button onclick="hub3(\'sellfur\')">Sell the furs to a factor <span class="mut">— ' + S.furs + ' bale' + (S.furs === 1 ? '' : 's') + ' · 3 dirhams each · to the purse</span></button>' : '') +
-        (S.captives ? '<button onclick="hub3(\'sellcap\')">Sell the captives to a factor <span class="mut">— ' + S.captives + ' head · 6 dirhams each · to the purse</span></button>' : '')
+        ((S.furs - (S.flags.hmgFur || 0)) ? '<button onclick="hub3(\'sellfur\')">Sell the furs to a factor <span class="mut">— ' + (S.furs - (S.flags.hmgFur || 0)) + ' bale' + ((S.furs - (S.flags.hmgFur || 0)) === 1 ? '' : 's') + ' not bought here · 3 dirhams each · to the purse</span></button>' : '') +
+        ((S.captives - (S.flags.hmgCap || 0)) ? '<button onclick="hub3(\'sellcap\')">Sell the captives to a factor <span class="mut">— ' + (S.captives - (S.flags.hmgCap || 0)) + ' head not bought here · 6 dirhams each · to the purse</span></button>' : '')
       : '') +
     '<button onclick="hub3(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day <span class="mut">' + (S.flags.rested ? '— already rested' : '— everyone eats · +spirits') + '</span></button>' +
     '<button onclick="hub3(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '— already feasted' : (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · spirits +2')) + '</span></button>' +
