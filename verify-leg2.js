@@ -635,5 +635,35 @@ const art3block = m[1].match(/var ART3EV = \{[\s\S]*?\n\};/)[0];
 });
 ok(m[1].indexOf("(leg === 3 && ART3EV[id]) ? ev3Img(id)") >= 0, 'leg-3 scenes prefer ART3EV before the leg-1 fallback');
 
+// round 53 / his playtest batch: five reports from his first sail south of Holmgard (art, exploit, ETA, arrival score, Gnezdovo hub)
+ok(m[1].indexOf('((leg === 2 || leg === 3) && ART2[id])') >= 0, 'leg 3 reads the river set before the leg-1 fallbacks (the Lovat art fix)');
+ok(m[1].indexOf('ART2.ilmenstorm = ART2.rain') >= 0, 'the Ilmen squall borrows the cold-rain scene');
+ok(m[1].indexOf('s.flags.hmgFur = (s.flags.hmgFur || 0) + 1') >= 0 && m[1].indexOf('var ff = s.furs - (s.flags.hmgFur || 0); s.silver += ff * 3; s.furs -= ff;') >= 0, 'goods bought at Holmgard are marked and only foreign goods can sell back');
+ok(m[1].indexOf('not bought here · 3 dirhams each') >= 0 && m[1].indexOf('not bought here · 6 dirhams each') >= 0, 'the sell buttons teach the rule in their own labels');
+// behavior: the infinite-silver loop is dead
+g.jumpTest(1);
+g.S.silver = 12; g.S.furs = 0; g.S.captives = 0; g.S.flags.hmgFur = 0; g.S.flags.hmgCap = 0;
+g.hub3('buyfur'); g.hub3('buyfur'); g.hub3('sellfur');
+ok(g.S.silver === 8 && g.S.furs === 2, 'the fur loop is dead: bales bought at Holmgard cannot sell back there');
+g.S.furs = 5;   // three foreign bales that came down the river
+g.hub3('sellfur');
+ok(g.S.silver === 17 && g.S.furs === 2, 'foreign furs still sell at 3 each - only the 3 not bought here moved');
+g.S.silver = 8; g.S.captives = 0; g.S.flags.hmgCap = 0;
+g.hub3('buycap'); g.hub3('sellcap');
+ok(g.S.captives === 1 && g.S.silver === 4, 'the captive loop is dead too (4 to buy, no buyback at 6)');
+// the ETA sentence + arrival scoring + Gnezdovo market
+ok(m[1].indexOf('average distance ' + String.fromCharCode(39)) >= 0 || m[1].indexOf("' The water ahead \u2014 average distance '") >= 0, 'the hub flavor closes with his average-distance sentence');
+ok(m[1].indexOf('var ETA3 = { holmgard: 20, gnezdovo: 15, kiev: 20, cherson: 18 }') >= 0, 'the average-distance table carries the measured sim ranges');
+ok(m[1].indexOf('function farArrival()') >= 0 && m[1].indexOf("['Gnezdovo', 'Kiev', 'Cherson'][st - 2]") >= 0, 'every leg-3 arrival scores onto the far-shore board with a CHECK-legal landing tag');
+ok(m[1].indexOf("S.flags['sc3' + S.sub])") >= 0 && m[1].indexOf("S.flags['sc3' + st] = 1;") >= 0, 'the arrival score fires once per landing, never twice');
+ok(m[1].indexOf("a === 'buybread' && s.hub === 'gnezdovo'") >= 0 && m[1].indexOf("a === 'gsellfur' && s.hub === 'gnezdovo'") >= 0 && m[1].indexOf("a === 'gsellcap' && s.hub === 'gnezdovo'") >= 0, 'the Gnezdovo hub trades: bread, furs, captives');
+ok(m[1].indexOf('The greatest settlement east of the Belt') >= 0, 'the Gnezdovo intro sells the settlement he called the biggest outside Scandinavia');
+// behavior: Gnezdovo market computes
+g.jumpTest(2);
+var _f0 = g.S.food, _s0 = g.S.silver = 4, g2f = g.S.furs = 2;
+g.hub3('buybread'); g.hub3('gsellfur');
+ok(g.S.silver === 6 && g.S.furs === 0 && g.S.food === _f0 + 20, 'Gnezdovo: bread +20 rations for 2 dirhams, furs sell at 2 each to the smola factor');
+ok(g.S.flags['sc32'] === 1, 'the Gnezdovo arrival scored once (harness test run stays off the wire)');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
