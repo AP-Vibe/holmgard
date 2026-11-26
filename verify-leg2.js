@@ -671,5 +671,25 @@ ok(g.S.flags['sc32'] === 1, 'the Gnezdovo arrival scored once (harness test run 
 });
 ok(m[1].indexOf("(ARTKEY[id] || (ART[id] ? id : null))") >= 0, 'the ARTKEY fallbacks stay intact for the rest');
 
+// round 55 / his playtest batch 3: the delta reeds get real art, the holy island its own scene, and Kiev trades
+['khortytsia','delta'].forEach(function (k) {
+  ok(art3block.indexOf(k + ': "data:image/webp;base64,') >= 0, 'round 55: ART3EV keeps its own art for ' + k + ' (the rune-stone island and the reed channels)');
+});
+ok(m[1].indexOf("fleet merchants paying quick silver for furs or captives") >= 0, 'the Kiev intro teaches the gathering market');
+ok(m[1].indexOf("3 dirhams a bale for furs, 5 a head for captives") >= 0, 'the help card teaches the Kiev factor prices');
+ok(m[1].indexOf("'ksellfur'") >= 0 && m[1].indexOf("'ksellcap'") >= 0 && m[1].indexOf("'kbread'") >= 0, 'the Kiev factor and market actions are wired');
+g.newGame(55);
+g.S.leg = 3; g.S.sub = 2; g.S.hub = 'kiev'; g.S.phase = 'hub3'; g.S.furs = 3; g.S.captives = 2; g.S.silver = 10; g.S.morale = 5;
+const _k0 = g.S.silver, _kf0 = g.S.food;
+g.hub3('kbread');
+ok(g.S.silver === _k0 - 2 && g.S.food === _kf0 + 25 && g.S.morale === 6, 'Kiev market: bread and grain +25 rations for 2 dirhams and the crew\'s spirits rise');
+g.hub3('ksellfur');
+ok(g.S.silver === _k0 - 2 + 9 && g.S.furs === 0, 'Kiev factor buys furs at 3 each into the purse (above the waystation price, under the Miklagard finale)');
+g.hub3('ksellcap');
+ok(g.S.silver === _k0 - 2 + 9 + 10 && g.S.captives === 0, 'Kiev factor buys captives at 5 each into the purse');
+g.newGame(55); g.S.leg = 3; g.S.sub = 1; g.S.hub = 'gnezdovo'; g.S.phase = 'hub3'; g.S.furs = 1;
+g.hub3('ksellfur'); g.hub3('kbread');
+ok(g.S.furs === 1, 'the Kiev factor and Kiev bread do not act at other hubs (guards hold)');
+
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
