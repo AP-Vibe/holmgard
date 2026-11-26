@@ -193,7 +193,7 @@ ok(md.indexOf('ART2.riftwreck = "data:image/webp;base64,') >= 0 && md.indexOf('f
 ok(m[1].indexOf('script.google.com') < 0, 'no Apps Script URL anywhere (the dead GAS deployment is gone)');
 ok(['cloudHtml','cloudPush','cloudPull','cloudUrl','CLOUDDEFAULT'].every(function (x) { return m[1].indexOf(x) < 0; }), 'no GAS cloud-board code remains in the game');
 ok(m[1].indexOf("var BOARDAPI = 'https://") >= 0, 'BOARDAPI filled: round 49 landed the shared-board endpoint (was an empty stub in round 48)');
-ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 36, 'the 36 webp scenes survived the GAS surgery');
+ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 38, 'the 38 webp scenes survived the GAS surgery');
 
 
 // round 30: the spring clock (his call: run starts early April from Birka; zero winters; convoy framing)
@@ -584,7 +584,7 @@ ok(m[1].indexOf('rapids1: \'seals\'') >= 0 && m[1].indexOf('parley: \'chud\'') >
 
 // round 47 / art diet: all art re-encoded to 480px webp q62, 821KB -> 589KB, no jpeg blobs left
 ok(m[1].indexOf('data:image/jpeg') < 0, 'no jpeg data URIs remain (the gnezdovo and cherson stragglers converted)');
-ok(m[1].split('data:image/webp;base64,').length - 1 === 36, 'all 36 embedded scenes are webp');
+ok(m[1].split('data:image/webp;base64,').length - 1 === 38, 'all 36 embedded scenes are webp');
 const sz = require('fs').statSync('canvases/holmgard-01-the-crossing/CANVAS.md').size;
 ok(sz < 800000 && sz > 400000, 'canvas ' + sz + ' bytes: the post-round-52 window (seven event scenes added on top of the dieted set)');
 
@@ -664,6 +664,12 @@ var _f0 = g.S.food, _s0 = g.S.silver = 4, g2f = g.S.furs = 2;
 g.hub3('buybread'); g.hub3('gsellfur');
 ok(g.S.silver === 6 && g.S.furs === 0 && g.S.food === _f0 + 20, 'Gnezdovo: bread +20 rations for 2 dirhams, furs sell at 2 each to the smola factor');
 ok(g.S.flags['sc32'] === 1, 'the Gnezdovo arrival scored once (harness test run stays off the wire)');
+
+// round 54 / his playtest batch 2: the road to Kiev gets its own event art
+['ferry','kinsman'].forEach(function (k) {
+  ok(m[1].indexOf(k + ': "data:image/webp;base64,') >= 0, 'ART3EV carries its own art for ' + k + ' (the Krivich crossing and the Chud kinsman)');
+});
+ok(m[1].indexOf("(ARTKEY[id] || (ART[id] ? id : null))") >= 0, 'the ARTKEY fallbacks stay intact for the rest');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
