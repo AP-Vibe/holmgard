@@ -343,7 +343,7 @@ function viewHub3() {
     holmgard: 'The settlement silver is in your purse, and south of the town the water-road runs to the Greek sea. Load the southern venture — the road is long, and the hold is what it is.',
     gnezdovo: 'The greatest settlement east of the Belt — timber walls over the river, a tar smell on the water, boatwrights\u2019 lanes and the Krivich traders\u2019 rows. The bank news: the June fleet gathers at Kiev, the Pecheneg summer holds for now, and a hoard rumor is making the rounds downstream. Caulk, provision, trade or take freight — the Dnieper runs from here.',
     kiev: 'The bluffs are black with beached keels and the gathering is loud on the sand. While the fleet waits, the river market is open: grain and smoked fish from the hinterland, pitch for the seams, and the fleet merchants paying quick silver for furs or captives — better than the waystation price, and no questions asked. Whatever you carry past here must run the rapids road.',
-    cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken — and the Greek market is open: wine, oil and glass bought here pay a factor\u2019s six dirhams a bale at Miklagard. Take the open water while the summons holds.'
+    cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken — and the Greek market is open: wine, oil and silk bought here pay a factor\u2019s six dirhams a bale at Miklagard. Take the open water while the summons holds.'
   };
   var cast3 = ['Run the Lovat and the portage to Gnezdovo', 'Cast off down the Dnieper for Kiev', 'Run the rapids road to Cherson', 'Take the Greek sea for Miklagard'][(S.sub || 1) - 1];
   var gateTxt = '';
