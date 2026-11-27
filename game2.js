@@ -108,15 +108,15 @@ function chip(c) {
 }
 function header() {
   var legName = (S.leg === 3)
-    ? ({ 1: 'Third leg — the Lovat and the portage, south to Smaleskja', 2: 'Third leg — down the Dnieper to Kænugarðr', 3: 'Third leg — the rapids road to Cherson', 4: 'Third leg — the Greek sea to Miklagard' })[S.sub || 1]
-    : ((S.leg === 2) ? 'Second leg — the road to Holmgard' : 'First leg — Birka to Aldeigjuborg');
+    ? ({ 1: 'Third leg \u2014 the Lovat and the portage, south to Smaleskja', 2: 'Third leg \u2014 down the Dnieper to K\u00e6nugar\u00f0r', 3: 'Third leg \u2014 the rapids road to Cherson', 4: 'Third leg \u2014 the Greek sea to Miklagard' })[S.sub || 1]
+    : ((S.leg === 2) ? 'Second leg \u2014 the road to Holmgard' : 'First leg \u2014 Birka to Aldeigjuborg');
   var cargo = (S.leg >= 2)
     ? '<span>Purse <b>' + S.silver + '</b> dirhams</span>' +
-      '<span>Hold <b>' + HMG.holdUsed(S) + '/' + HMG.HOLD + '</b> · furs <b>' + S.furs + '</b> · freight <b>' + (S.freight || 0) + '</b> · captives <b>' + S.captives + '</b>' + ((S.greek) ? ' · Greek <b>' + S.greek + '</b>' : '') + '</span>'
+      '<span>Hold <b>' + HMG.holdUsed(S) + '/' + HMG.HOLD + '</b> \u00b7 furs <b>' + S.furs + '</b> \u00b7 freight <b>' + (S.freight || 0) + '</b> \u00b7 captives <b>' + S.captives + '</b>' + ((S.greek) ? ' \u00b7 Greek <b>' + S.greek + '</b>' : '') + '</span>'
     : '<span>Provision <b>' + S.silver + '</b> dirhams</span>';   // round 51: the purse shows on every leg
 
   return '<div class="top">' +
-    '<div class="dayline">Day ' + S.day + ' — ' + HMG.dateStr(S.day) + ' · ' + legName + '</div>' +
+    '<div class="dayline">Day ' + S.day + ' \u2014 ' + HMG.dateStr(S.day) + ' \u00b7 ' + legName + '</div>' +
     '<div class="stats">' +
     '<span>Rations <b>' + S.food + '</b></span>' +
     cargo +
@@ -131,23 +131,23 @@ function viewTitle() {
   var saved = SR.get(KEY);
   var seed = SR.get(KEYS);
   var b = '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.4 — The Road to Miklagard</div>' +
-    '<div class="card"><p class="hint center">Prototype: the lake crossing, the landing at Aldeigjuborg, the river road to Holmgard, and now the southern water-road: Smaleskja, Kænugarðr, the rapids and the Greek sea to Miklagard.</p>';
+    '<div class="sub">0.4 \u2014 The Road to Miklagard</div>' +
+    '<div class="card"><p class="hint center">Prototype: the lake crossing, the landing at Aldeigjuborg, the river road to Holmgard, and now the southern water-road: Smaleskja, K\u00e6nugar\u00f0r, the rapids and the Greek sea to Miklagard.</p>';
   b += '<button class="primary" onclick="newGame()">A new crossing</button>';
   b += '<button class="small" onclick="showHelp(\'title\')">How to play</button>';
   if (seed) b += '<button onclick="newGame(' + seed + ')">Retry the same fate</button>';
   if (saved) {
     var st = loadSlot();
-    if (st && st.phase && st.phase !== 'end') b += '<button onclick="resumeGame()">Resume the crossing — Day ' + st.day + '</button>';
+    if (st && st.phase && st.phase !== 'end') b += '<button onclick="resumeGame()">Resume the crossing \u2014 Day ' + st.day + '</button>';
   }
   b += '</div>';
-  b += '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Test jumps — start mid-road (not scored on the skippers\u2019 board)</summary>' +
+  b += '<details style="margin-top:12px"><summary class="mut" style="font-size:13px">Test jumps \u2014 start mid-road (not scored on the skippers\u2019 board)</summary>' +
     '<p class="mut" style="font-size:13px;margin:8px 0">Each jump lands you in the hub before that stage with a full company, an average purse, and the day an average run reaches it.</p>' +
-    '<button class="small" onclick="jumpTest(\'leg2\')">Second leg — the Aldeigjuborg landing (day 24, 32 dirhams)</button>' +
-    '<button class="small" onclick="jumpTest(1)">Third leg — Holmgard (day 45, 42 dirhams)</button>' +
-    '<button class="small" onclick="jumpTest(2)">Third leg — Smaleskja (day 68, 36 dirhams)</button>' +
-    '<button class="small" onclick="jumpTest(3)">Third leg — Kænugarðr (day 88, 30 dirhams)</button>' +
-    '<button class="small" onclick="jumpTest(4)">Third leg — Cherson (day 114, 24 dirhams)</button>' +
+    '<button class="small" onclick="jumpTest(\'leg2\')">Second leg \u2014 the Aldeigjuborg landing (day 24, 32 dirhams)</button>' +
+    '<button class="small" onclick="jumpTest(1)">Third leg \u2014 Holmgard (day 45, 42 dirhams)</button>' +
+    '<button class="small" onclick="jumpTest(2)">Third leg \u2014 Smaleskja (day 68, 36 dirhams)</button>' +
+    '<button class="small" onclick="jumpTest(3)">Third leg \u2014 K\u00e6nugar\u00f0r (day 88, 30 dirhams)</button>' +
+    '<button class="small" onclick="jumpTest(4)">Third leg \u2014 Cherson (day 114, 24 dirhams)</button>' +
     '</details>';
   b += boardHtml(5);
   b += sharedHtml();
@@ -161,23 +161,23 @@ function resumeGame() {
   render();
 }
 function viewIntro() {
-  var crew = S.crew.map(function (c) { return c.name + ', ' + c.role; }).join(' · ');
+  var crew = S.crew.map(function (c) { return c.name + ', ' + c.role; }).join(' \u00b7 ');
   return '<div class="logo serif">HOLMGARD <b>AND BEYOND</b></div>' +
-    '<div class="sub">0.4 — The Road to Miklagard</div>' +
+    '<div class="sub">0.4 \u2014 The Road to Miklagard</div>' +
     '<div class="card contract">' +
     '<h2 class="serif" style="margin-top:0">Birka, the 1st of September</h2>' +
-    '<p>The merchant Halvdan weighs three bales of Gotland cloth into the hold of your knarr — half a year of someone\u2019s weaving. He speaks a number, and it is a good one.</p>' +
+    '<p>The merchant Halvdan weighs three bales of Gotland cloth into the hold of your knarr \u2014 half a year of someone\u2019s weaving. He speaks a number, and it is a good one.</p>' +
     '<div class="terms">' +
-    '<div><span>Cargo </span>three bales of Gotland cloth — keep them dry</div>' +
-    '<div><span>Buyer </span>Farman Leif, Aldeigjuborg — the journey\u2019s end</div>' +
+    '<div><span>Cargo </span>three bales of Gotland cloth \u2014 keep them dry</div>' +
+    '<div><span>Buyer </span>Farman Leif, Aldeigjuborg \u2014 the journey\u2019s end</div>' +
     '<div><span>On delivery </span>30 dirhams</div>' +
     '<div><span>Paid now </span>8 dirhams for provision</div>' +
-    '<div><span>The run </span>near 500 sea-miles of skerries, open Baltic and one great lake — a fair crossing takes 15–20 days</div>' +
-    '<div><span>Provision </span>140 rations aboard · ten mouths eat ten a day — fourteen days of food, less if storms stall you</div>' +
-    '<div><span>The clock </span>the early convoys leave the landing about the 11th of May (day 32) — arrive after and the buyer pays half</div>' +
+    '<div><span>The run </span>near 500 sea-miles of skerries, open Baltic and one great lake \u2014 a fair crossing takes 15\u201320 days</div>' +
+    '<div><span>Provision </span>140 rations aboard \u00b7 ten mouths eat ten a day \u2014 fourteen days of food, less if storms stall you</div>' +
+    '<div><span>The clock </span>the early convoys leave the landing about the 11th of May (day 32) \u2014 arrive after and the buyer pays half</div>' +
     '</div>' +
     '<p>Aldeigjuborg is where this contract ends. But the water-road does not: behind the buyer\u2019s weighing-house the river runs south to Holmgard, and furs travel cheap that way. The last of the lake ice is gone about the eleventh of May.</p>' +
-    '<p class="mut" style="font-size:13px">Under your hand: you, the skipper, and nine crew — ' + crew + '. Ten mouths eat ten rations a day. A man gone from the oars slows the ship; a man gone from the pot eats nothing. His share of the silver goes back to the merchant\u2019s tally.</p>' +
+    '<p class="mut" style="font-size:13px">Under your hand: you, the skipper, and nine crew \u2014 ' + crew + '. Ten mouths eat ten rations a day. A man gone from the oars slows the ship; a man gone from the pot eats nothing. His share of the silver goes back to the merchant\u2019s tally.</p>' +
     '<input id="skippername" class="boardinput" placeholder="Skipper\u2019s name (for the skippers\u2019 board)" maxlength="18" value="' + (SR.get('hmg01name') || '').replace(/"/g, '&quot;') + '"/>' +
     '<button class="primary" onclick="board()">Board the knarr</button>' +
     '<button class="small" onclick="toTitle()">Back</button>' +
@@ -192,7 +192,7 @@ function board() {
   if (el && el.blur) { try { el.blur(); } catch (e) {} }
   HMG.begin(S); save(); render();
 }
-function choose(i) { var _b = snap(); HMG.applyChoice(S, i); save(); render(); actToast(_b); }   // round 56: a choice is never silent — wounds and losses answer on the toast
+function choose(i) { var _b = snap(); HMG.applyChoice(S, i); save(); render(); actToast(_b); }   // round 56: a choice is never silent \u2014 wounds and losses answer on the toast
 function mkt(a) { if (a !== 'castoff') keepScroll = true; var _b = snap(); HMG.marketAct(S, a); save(); render(); actToast(_b); }
 function viewDay() {
   var ev = HMG.currentEvent(S);
@@ -211,11 +211,11 @@ function viewMarket() {
   return '<div class="card">' +
     '<div class="scene">' + villageSVG('market') + '</div>' +
     '<h2 class="ev-title serif">A Chud fishing village</h2>' +
-    '<p class="ev-text">Drying racks, dogfish smoke, a sheltered bay. They will trade — the season does not wait.</p>' +
-    '<button onclick="mkt(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +30 rations') + '</span></button>' +
-    '<button onclick="mkt(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship, seal her seams <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : '— 4 dirhams · hull +25') + '</span></button>' +
-    '<button onclick="mkt(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">— purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">— 2 dirhams · heals the sick</span>' : '<span class="mut">— 2 dirhams · heals the hurt</span>')) + '</button>' +
-    '<button onclick="mkt(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats · no sailing · +spirits</span>') + '</button>' +
+    '<p class="ev-text">Drying racks, dogfish smoke, a sheltered bay. They will trade \u2014 the season does not wait.</p>' +
+    '<button onclick="mkt(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 +30 rations') + '</span></button>' +
+    '<button onclick="mkt(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship, seal her seams <span class="mut">' + (S.silver < 4 ? '\u2014 purse too light (4 dirhams)' : '\u2014 4 dirhams \u00b7 hull +25') + '</span></button>' +
+    '<button onclick="mkt(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">\u2014 purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">\u2014 2 dirhams \u00b7 heals the sick</span>' : '<span class="mut">\u2014 2 dirhams \u00b7 heals the hurt</span>')) + '</button>' +
+    '<button onclick="mkt(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">\u2014 already rested</span>' : '<span class="mut">\u2014 everyone eats \u00b7 no sailing \u00b7 +spirits</span>') + '</button>' +
     '<button class="primary" onclick="mkt(\'castoff\')">Cast off</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
     '</div>';
@@ -239,10 +239,10 @@ function viewHub() {
     '<p class="ev-text">Leif\u2019s weighing-house stands behind the beach. The settlement silver is in your purse; the river road south is open. What you load now, you carry to Holmgard.</p>' +
     '<div class="tally" style="margin:0 0 12px">' +
     '<div class="row"><span>Purse after settlement</span><span>' + S.silver + ' dirhams</span></div>' +
-    '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units — ' + freeH + ' free</span></div>' +
+    '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units \u2014 ' + freeH + ' free</span></div>' +
     '</div>' +
     '<div class="holdbar"><i style="width:' + Math.round(usedH / HMG.HOLD * 100) + '%"></i></div>' +
-    '<p class="hint">Loaded: <b>' + S.furs + '</b> fur ' + (S.furs === 1 ? 'bale' : 'bales') + ' (' + S.furs + ' unit' + (S.furs === 1 ? '' : 's') + ')' + (S.freight ? ' · <b>' + S.freight + '</b> freight bale' + (S.freight === 1 ? '' : 's') + ' (' + S.freight + ' unit' + (S.freight === 1 ? '' : 's') + ', a merchant\u2019s goods — 2 dirhams each at Holmgard)' : '') + (S.captives ? ' · <b>' + S.captives + '</b> captive' + (S.captives === 1 ? '' : 's') + ' (' + S.captives * 2 + ' units, each eats a ration a day)' : '') + '. ' + freeH + ' unit' + (freeH === 1 ? '' : 's') + ' free. Hands aboard: ' + held + ' — every oar speeds the river days.</p>' +
+    '<p class="hint">Loaded: <b>' + S.furs + '</b> fur ' + (S.furs === 1 ? 'bale' : 'bales') + ' (' + S.furs + ' unit' + (S.furs === 1 ? '' : 's') + ')' + (S.freight ? ' \u00b7 <b>' + S.freight + '</b> freight bale' + (S.freight === 1 ? '' : 's') + ' (' + S.freight + ' unit' + (S.freight === 1 ? '' : 's') + ', a merchant\u2019s goods \u2014 2 dirhams each at Holmgard)' : '') + (S.captives ? ' \u00b7 <b>' + S.captives + '</b> captive' + (S.captives === 1 ? '' : 's') + ' (' + S.captives * 2 + ' units, each eats a ration a day)' : '') + '. ' + freeH + ' unit' + (freeH === 1 ? '' : 's') + ' free. Hands aboard: ' + held + ' \u2014 every oar speeds the river days.</p>' +
     (function () {
       var alive = S.crew.filter(function (c) { return !c.dead; }).length;
       var m2 = 1 + alive + (S.captives || 0);
@@ -254,17 +254,17 @@ function viewHub() {
       '<div class="row"><span>Rations aboard</span><span>' + S.food + ' \u2014 about ' + daysOf + ' days of food</span></div>' +
       '</div>';
       if (daysOf < 15) return rows + '<p class="hint"><b>' + daysOf + ' days of food for a 15\u201420 day river.</b> The river runs thin over her sandbars after a dry summer, and the Gostinopol rapids above the landing guard the way \u2014 cargo walked round them can cost a captive. Buy fish before you cast off.</p>';
-      return rows + '<p class="mut" style="font-size:13px;margin:0 0 10px">Mind the river all the same: sandbars in the dry season, the Gostinopol rapids above the landing, and the Kænugarðr road closing to stragglers not far behind.</p>';
+      return rows + '<p class="mut" style="font-size:13px;margin:0 0 10px">Mind the river all the same: sandbars in the dry season, the Gostinopol rapids above the landing, and the K\u00e6nugar\u00f0r road closing to stragglers not far behind.</p>';
     })() +
-    '<button onclick="hub(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '— no hands left on the beach' : (S.silver < 5 ? '— purse too light (5 dirhams)' : '— 5 dirhams · ' + hireable[0] + ' waits on the beach')) + '</span></button>' +
-    '<button onclick="hub(\'furs\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (freeH < 1 ? '— hold full' : '— 2 dirhams · 1 unit · sells ~5')) + '</span></button>' +
-    '<button onclick="hub(\'freight\')" ' + (freeH < 1 ? 'disabled' : '') + '>Take a merchant\u2019s freight bale <span class="mut">' + (freeH < 1 ? '— hold full' : '— free · 1 unit · pays 2 dirhams at Holmgard') + '</span></button>' +
-    '<button onclick="hub(\'captive\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Buy a captive <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : (freeH < 2 ? '— hold full (needs 2 units)' : '— 4 dirhams · 2 units · sells ~12')) + '</span></button>' +
-    '<button onclick="hub(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +30 rations') + '</span></button>' +
-    '<button onclick="hub(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship, seal her seams <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : '— 4 dirhams · hull +25') + '</span></button>' +
-    '<button onclick="hub(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">— purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">— 2 dirhams · heals the sick</span>' : '<span class="mut">— 2 dirhams · heals the hurt</span>')) + '</button>' +
-    '<button onclick="hub(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">— already rested</span>' : '<span class="mut">— everyone eats · +spirits</span>') + '</button>' +
-    '<button onclick="hub(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '— already feasted' : (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · mead and meat · spirits +2')) + '</span></button>' +
+    '<button onclick="hub(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '\u2014 no hands left on the beach' : (S.silver < 5 ? '\u2014 purse too light (5 dirhams)' : '\u2014 5 dirhams \u00b7 ' + hireable[0] + ' waits on the beach')) + '</span></button>' +
+    '<button onclick="hub(\'furs\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : (freeH < 1 ? '\u2014 hold full' : '\u2014 2 dirhams \u00b7 1 unit \u00b7 sells ~5')) + '</span></button>' +
+    '<button onclick="hub(\'freight\')" ' + (freeH < 1 ? 'disabled' : '') + '>Take a merchant\u2019s freight bale <span class="mut">' + (freeH < 1 ? '\u2014 hold full' : '\u2014 free \u00b7 1 unit \u00b7 pays 2 dirhams at Holmgard') + '</span></button>' +
+    '<button onclick="hub(\'captive\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Buy a captive <span class="mut">' + (S.silver < 4 ? '\u2014 purse too light (4 dirhams)' : (freeH < 2 ? '\u2014 hold full (needs 2 units)' : '\u2014 4 dirhams \u00b7 2 units \u00b7 sells ~12')) + '</span></button>' +
+    '<button onclick="hub(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 +30 rations') + '</span></button>' +
+    '<button onclick="hub(\'careen\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Beach the ship, seal her seams <span class="mut">' + (S.silver < 4 ? '\u2014 purse too light (4 dirhams)' : '\u2014 4 dirhams \u00b7 hull +25') + '</span></button>' +
+    '<button onclick="hub(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman Ingered ' + (S.silver < 2 ? '<span class="mut">\u2014 purse too light (2 dirhams)</span>' : (anySick ? '<span class="mut">\u2014 2 dirhams \u00b7 heals the sick</span>' : '<span class="mut">\u2014 2 dirhams \u00b7 heals the hurt</span>')) + '</button>' +
+    '<button onclick="hub(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day ' + (S.flags.rested ? '<span class="mut">\u2014 already rested</span>' : '<span class="mut">\u2014 everyone eats \u00b7 +spirits</span>') + '</button>' +
+    '<button onclick="hub(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '\u2014 already feasted' : (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 mead and meat \u00b7 spirits +2')) + '</span></button>' +
     '<button class="primary" onclick="hub(\'castoff2\')">Cast off for Holmgard</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
     '</div>';
@@ -298,7 +298,7 @@ function viewEnd() {
     '<p class="ev-text">' + r.text + '</p>' +
     '<div class="tally">' +
     '<div class="row"><span>Leg\u2019s end</span><span>' + r.dest + '</span></div>' +
-    '<div class="row"><span>Arrived</span><span>' + (r.how === 'arrived' ? r.date : '—') + '</span></div>' +
+    '<div class="row"><span>Arrived</span><span>' + (r.how === 'arrived' ? r.date : '\u2014') + '</span></div>' +
     '<div class="row"><span>Days out</span><span>' + r.days + '</span></div>' +
     '<div class="row"><span>Bales wet</span><span>' + r.wet + '</span></div>' +
     crew +
@@ -328,8 +328,8 @@ function viewEnd() {
         '<p class="mut" style="font-size:13px;margin:0 0 10px">The river road to Holmgard is a new venture: near 120 miles upriver to Holmgard, typically 15\u201420 days loaded \u2014 fill the pantry at the landing before you cast off. Hire hands, buy furs or captives, and run the rapids. A run that ends on the river is scored as it stands \u2014 tag Holmgard.</p>'
       : '') +
     ((r.how === 'arrived' && S.leg === 2 && r.dest === 'Holmgard')
-      ? '<button class="primary" onclick="goSouth()">The road does not end here — south to Miklagard</button>' +
-        '<p class="mut" style="font-size:13px;margin:0 0 10px">The third leg is the long one: the Lovat and the watershed portage to Smaleskja, down the Dnieper to Kænugarðr\u2019s June gathering, the rapids road to Cherson, then the Greek sea — near 90 days of travel. The fleet clears Kænugarðr early in July and the sea closes at Cherson in late August. Whatever you carry now, you carry to Miklagard.</p>'
+      ? '<button class="primary" onclick="goSouth()">The road does not end here \u2014 south to Miklagard</button>' +
+        '<p class="mut" style="font-size:13px;margin:0 0 10px">The third leg is the long one: the Lovat and the watershed portage to Smaleskja, down the Dnieper to K\u00e6nugar\u00f0r\u2019s June gathering, the rapids road to Cherson, then the Greek sea \u2014 near 90 days of travel. The fleet clears K\u00e6nugar\u00f0r early in July and the sea closes at Cherson in late August. Whatever you carry now, you carry to Miklagard.</p>'
       : '') +
     boardHtml(10) +
     '<button class="primary" onclick="newGame()">A new crossing</button>' +
@@ -348,69 +348,69 @@ function viewHub3() {
   var taken = S.crew.map(function (c) { return c.name; });
   var hireable = HMG.HIRES.filter(function (n) { return taken.indexOf(n) < 0; });
   var sick3 = S.crew.some(function (c) { return !c.dead && c.hp < 2; });   // round 56: the wisewoman's label answers the crew's state
-  var names3 = { holmgard: 'Holmgard', gnezdovo: 'Smaleskja — the smola-tar waystation', kiev: 'Kænugarðr — the June gathering', cherson: 'Cherson — the emperor\u2019s gate' };
+  var names3 = { holmgard: 'Holmgard', gnezdovo: 'Smaleskja \u2014 the smola-tar waystation', kiev: 'K\u00e6nugar\u00f0r \u2014 the June gathering', cherson: 'Cherson \u2014 the emperor\u2019s gate' };
   var intro3 = {
-    holmgard: 'The settlement silver is in your purse, and south of the town the water-road runs to the Greek sea. Load the southern venture — the road is long, and the hold is what it is.',
-    gnezdovo: 'The greatest settlement east of the Belt — timber walls over the river, a tar smell on the water, boatwrights\u2019 lanes and the Krivich traders\u2019 rows. The bank news: the June fleet gathers at Kænugarðr, the Pecheneg summer holds for now, and a hoard rumor is making the rounds downstream. At the factor\u2019s scales the weigher takes his fee in squirrel skins — two to the silver mark, as the river\u2019s law has long run. Caulk, provision, trade or take freight — the Dnieper runs from here.',
-    kiev: 'The bluffs are black with beached keels and the gathering is loud on the sand. While the fleet waits, the river market is open: grain and smoked fish from the hinterland, pitch for the seams, and the fleet merchants paying quick silver for furs or captives — better than the waystation price, and no questions asked. Whatever you carry past here must run the rapids road.',
-    cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken — and the Greek market is open: wine, oil and silk bought here pay a factor\u2019s six dirhams a bale at Miklagard. Take the open water while the summons holds.'
+    holmgard: 'The settlement silver is in your purse, and south of the town the water-road runs to the Greek sea. Load the southern venture \u2014 the road is long, and the hold is what it is.',
+    gnezdovo: 'The greatest settlement east of the Belt \u2014 timber walls over the river, a tar smell on the water, boatwrights\u2019 lanes and the Krivich traders\u2019 rows. The bank news: the June fleet gathers at K\u00e6nugar\u00f0r, the Pecheneg summer holds for now, and a hoard rumor is making the rounds downstream. At the factor\u2019s scales the weigher takes his fee in squirrel skins \u2014 two to the silver mark, as the river\u2019s law has long run. Caulk, provision, trade or take freight \u2014 the Dnieper runs from here.',
+    kiev: 'The bluffs are black with beached keels and the gathering is loud on the sand. While the fleet waits, the river market is open: grain and smoked fish from the hinterland, pitch for the seams, and the fleet merchants paying quick silver for furs or captives \u2014 better than the waystation price, and no questions asked. Whatever you carry past here must run the rapids road.',
+    cherson: 'Greek brick over the white bluffs, the empire\u2019s patience in the harbour. Fix what\u2019s broken \u2014 and the Greek market is open: wine, oil and silk bought here pay a factor\u2019s six dirhams a bale at Miklagard. Take the open water while the summons holds.'
   };
-  var cast3 = ['Run the Lovat and the portage to Smaleskja', 'Cast off down the Dnieper for Kænugarðr', 'Run the rapids road to Cherson', 'Take the Greek sea for Miklagard'][(S.sub || 1) - 1];
+  var cast3 = ['Run the Lovat and the portage to Smaleskja', 'Cast off down the Dnieper for K\u00e6nugar\u00f0r', 'Run the rapids road to Cherson', 'Take the Greek sea for Miklagard'][(S.sub || 1) - 1];
   var gateTxt = '';
-  if (hub === 'holmgard' || hub === 'gnezdovo') gateTxt = 'Kænugarðr gates the road: the June fleet clears about ' + HMG.dateStr(HMG.FLEET) + ' — miss it and you run the rapids alone. The sea closes at Cherson about ' + HMG.dateStr(HMG.SEACLOSE) + '.';
-  if (hub === 'kiev') gateTxt = (S.flags.lateFleet ? '<b>The June fleet has sailed.</b> You will run the rapids alone — watch the hull and your parleys.' : 'The fleet waits a little yet. Do not linger; the summonses at Cherson stop about ' + HMG.dateStr(HMG.SEACLOSE) + '.');
-  if (hub === 'cherson') gateTxt = 'The summons holds while the summer light lasts — about ' + Math.max(0, HMG.SEACLOSE - S.day) + ' days of season left. Past that, the sea closes.';
+  if (hub === 'holmgard' || hub === 'gnezdovo') gateTxt = 'K\u00e6nugar\u00f0r gates the road: the June fleet clears about ' + HMG.dateStr(HMG.FLEET) + ' \u2014 miss it and you run the rapids alone. The sea closes at Cherson about ' + HMG.dateStr(HMG.SEACLOSE) + '.';
+  if (hub === 'kiev') gateTxt = (S.flags.lateFleet ? '<b>The June fleet has sailed.</b> You will run the rapids alone \u2014 watch the hull and your parleys.' : 'The fleet waits a little yet. Do not linger; the summonses at Cherson stop about ' + HMG.dateStr(HMG.SEACLOSE) + '.');
+  if (hub === 'cherson') gateTxt = 'The summons holds while the summer light lasts \u2014 about ' + Math.max(0, HMG.SEACLOSE - S.day) + ' days of season left. Past that, the sea closes.';
   var ETA3 = { holmgard: 20, gnezdovo: 15, kiev: 20, cherson: 18 };   // round 53, his ask: measured sims (not pushed hard, one closing sentence)
-  gateTxt += ' The water ahead — average distance ' + ETA3[hub] + ' days.';
+  gateTxt += ' The water ahead \u2014 average distance ' + ETA3[hub] + ' days.';
   return '<div class="card">' +
     '<div class="scene">' + hub3Img(hub) + '</div>' +
     '<h2 class="ev-title serif">' + names3[hub] + '</h2>' +
     '<p class="ev-text">' + intro3[hub] + '</p>' +
-    ((S.flags.hubLift) ? '<p class="hint" style="margin:-6px 0 12px">The sight of the landing lifts the crew — spirits are up.</p>' : '') +
+    ((S.flags.hubLift) ? '<p class="hint" style="margin:-6px 0 12px">The sight of the landing lifts the crew \u2014 spirits are up.</p>' : '') +
     '<div class="tally" style="margin:0 0 12px">' +
     '<div class="row"><span>Purse</span><span>' + S.silver + ' dirhams</span></div>' +
-    '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units — ' + freeH + ' free</span></div>' +
-    '<div class="row"><span>Mouths to feed</span><span>' + m3 + ' eat ' + m3 + ' rations a day — ' + S.food + ' aboard, about ' + daysOf + ' days</span></div>' +
-    (function () { var L3 = { gnezdovo: 'Gnezdovo', kiev: 'Kiev', cherson: 'Cherson' }[S.hub]; if (!L3) return ''; var N3 = { Gnezdovo: 'Smaleskja', Kiev: 'Kænugarðr', Cherson: 'Cherson' }[L3]; return ((S.flags.arrivalScore && S.flags.arrivalScore.g === L3) ? '<div class="row"><span>Venture so far — scored at ' + N3 + '</span><span>' + S.flags.arrivalScore.m + ' dirhams aboard · score ' + S.flags.arrivalScore.s + ' on the skippers\' board</span></div>' : '') + ((window.sbRankData && window.sbRankData.g === L3) ? '<div class="row"><span>Among the skippers at ' + N3 + '</span><span>' + window.sbRankData.rank + ' of ' + window.sbRankData.total + ' logged ventures</span></div>' : ''); })() +
-    ((hub === 'kiev' && S.flags.freightPaid) ? '<div class="row"><span>Freight settled here</span><span>' + S.flags.freightPaid + ' bale' + (S.flags.freightPaid === 1 ? '' : 's') + ' — ' + (S.flags.freightPaid * 2) + ' dirhams to the purse</span></div>' : '') +
-    '<div class="row"><span>Loaded</span><span>' + S.furs + ' furs · ' + (S.freight || 0) + ' freight · ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') + ((S.greek) ? ' · ' + S.greek + ' Greek bale' + (S.greek === 1 ? '' : 's') : '') + '</span></div>' +
+    '<div class="row loadrow"><span>Cargo hold</span><span>' + usedH + ' of ' + HMG.HOLD + ' units \u2014 ' + freeH + ' free</span></div>' +
+    '<div class="row"><span>Mouths to feed</span><span>' + m3 + ' eat ' + m3 + ' rations a day \u2014 ' + S.food + ' aboard, about ' + daysOf + ' days</span></div>' +
+    (function () { var L3 = { gnezdovo: 'Gnezdovo', kiev: 'Kiev', cherson: 'Cherson' }[S.hub]; if (!L3) return ''; var N3 = { Gnezdovo: 'Smaleskja', Kiev: 'K\u00e6nugar\u00f0r', Cherson: 'Cherson' }[L3]; return ((S.flags.arrivalScore && S.flags.arrivalScore.g === L3) ? '<div class="row"><span>Venture so far \u2014 scored at ' + N3 + '</span><span>' + S.flags.arrivalScore.m + ' dirhams aboard \u00b7 score ' + S.flags.arrivalScore.s + ' on the skippers\' board</span></div>' : '') + ((window.sbRankData && window.sbRankData.g === L3) ? '<div class="row"><span>Among the skippers at ' + N3 + '</span><span>' + window.sbRankData.rank + ' of ' + window.sbRankData.total + ' logged ventures</span></div>' : ''); })() +
+    ((hub === 'kiev' && S.flags.freightPaid) ? '<div class="row"><span>Freight settled here</span><span>' + S.flags.freightPaid + ' bale' + (S.flags.freightPaid === 1 ? '' : 's') + ' \u2014 ' + (S.flags.freightPaid * 2) + ' dirhams to the purse</span></div>' : '') +
+    '<div class="row"><span>Loaded</span><span>' + S.furs + ' furs \u00b7 ' + (S.freight || 0) + ' freight \u00b7 ' + S.captives + ' captive' + (S.captives === 1 ? '' : 's') + ((S.greek) ? ' \u00b7 ' + S.greek + ' Greek bale' + (S.greek === 1 ? '' : 's') : '') + '</span></div>' +
     '</div>' +
     '<div class="holdbar"><i style="width:' + Math.round(usedH / HMG.HOLD * 100) + '%"></i></div>' +
     '<p class="hint">' + gateTxt + '</p>' +
-    '<button onclick="hub3(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +30 rations') + '</span></button>' +
-    '<button onclick="hub3(\'caulk\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Caulk and seal the hull <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : '— 4 dirhams · hull +25') + '</span></button>' +
-    '<button onclick="hub3(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '— no hands left on the bank' : (S.silver < 5 ? '— purse too light (5 dirhams)' : '— 5 dirhams · ' + hireable[0] + ' waits')) + '</span></button>' +
+    '<button onclick="hub3(\'fish\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy smoked fish <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 +30 rations') + '</span></button>' +
+    '<button onclick="hub3(\'caulk\')" ' + (S.silver < 4 ? 'disabled' : '') + '>Caulk and seal the hull <span class="mut">' + (S.silver < 4 ? '\u2014 purse too light (4 dirhams)' : '\u2014 4 dirhams \u00b7 hull +25') + '</span></button>' +
+    '<button onclick="hub3(\'hire\')" ' + (!hireable.length || S.silver < 5 ? 'disabled' : '') + '>Hire a hand <span class="mut">' + (!hireable.length ? '\u2014 no hands left on the bank' : (S.silver < 5 ? '\u2014 purse too light (5 dirhams)' : '\u2014 5 dirhams \u00b7 ' + hireable[0] + ' waits')) + '</span></button>' +
     ((hub === 'holmgard' || hub === 'gnezdovo')
-      ? '<button onclick="hub3(\'freight\')" ' + (freeH < 1 ? 'disabled' : '') + '>Take a merchant\u2019s freight bale <span class="mut">' + (freeH < 1 ? '— hold full' : '— free · 1 unit · pays 2 dirhams at Kænugarðr') + '</span></button>'
+      ? '<button onclick="hub3(\'freight\')" ' + (freeH < 1 ? 'disabled' : '') + '>Take a merchant\u2019s freight bale <span class="mut">' + (freeH < 1 ? '\u2014 hold full' : '\u2014 free \u00b7 1 unit \u00b7 pays 2 dirhams at K\u00e6nugar\u00f0r') + '</span></button>'
       : '') +
     ((hub === 'cherson')
-      ? '<button onclick="hub3(\'buygreek\')" ' + (S.silver < 3 || freeH < 1 ? 'disabled' : '') + '>Buy a bale of Greek goods <span class="mut">' + (S.silver < 3 ? '— purse too light (3 dirhams)' : (freeH < 1 ? '— hold full' : '— 3 dirhams · 1 unit · pays 6 dirhams at Miklagard')) + '</span></button>'
+      ? '<button onclick="hub3(\'buygreek\')" ' + (S.silver < 3 || freeH < 1 ? 'disabled' : '') + '>Buy a bale of Greek goods <span class="mut">' + (S.silver < 3 ? '\u2014 purse too light (3 dirhams)' : (freeH < 1 ? '\u2014 hold full' : '\u2014 3 dirhams \u00b7 1 unit \u00b7 pays 6 dirhams at Miklagard')) + '</span></button>'
       : '') +
     ((hub === 'gnezdovo')   // round 53, his call: the biggest settlement on the road offers the most
-      ? '<button onclick="hub3(\'buybread\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy bread and dried fish <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +20 rations') + '</span></button>' +
-        (S.furs ? '<button onclick="hub3(\'gsellfur\')">Sell furs to the smola factor <span class="mut">— ' + S.furs + ' bale' + (S.furs === 1 ? '' : 's') + ' · 2 dirhams each · to the purse</span></button>' : '') +
-        (S.captives ? '<button onclick="hub3(\'gsellcap\')">Sell captives to the factor <span class="mut">— ' + S.captives + ' head · 4 dirhams each · to the purse</span></button>' : '')
+      ? '<button onclick="hub3(\'buybread\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy bread and dried fish <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 +20 rations') + '</span></button>' +
+        (S.furs ? '<button onclick="hub3(\'gsellfur\')">Sell furs to the smola factor <span class="mut">\u2014 ' + S.furs + ' bale' + (S.furs === 1 ? '' : 's') + ' \u00b7 2 dirhams each \u00b7 to the purse</span></button>' : '') +
+        (S.captives ? '<button onclick="hub3(\'gsellcap\')">Sell captives to the factor <span class="mut">\u2014 ' + S.captives + ' head \u00b7 4 dirhams each \u00b7 to the purse</span></button>' : '')
       : '') +
-    ((hub === 'kiev')   // round 55, his call: every hub on the road trades — the June gathering's market
-      ? '<button onclick="hub3(\'kbread\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy bread and grain <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · +25 rations · the crew\'s spirits rise') + '</span></button>' +
-        (S.furs ? '<button onclick="hub3(\'ksellfur\')">Sell furs to the fleet merchants <span class="mut">— ' + S.furs + ' bale' + (S.furs === 1 ? '' : 's') + ' · 3 dirhams each · to the purse</span></button>' : '') +
-        (S.captives ? '<button onclick="hub3(\'ksellcap\')">Sell captives to the fleet merchants <span class="mut">— ' + S.captives + ' head · 5 dirhams each · to the purse</span></button>' : '')
+    ((hub === 'kiev')   // round 55, his call: every hub on the road trades \u2014 the June gathering's market
+      ? '<button onclick="hub3(\'kbread\')" ' + (S.silver < 2 ? 'disabled' : '') + '>Buy bread and grain <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 +25 rations \u00b7 the crew\'s spirits rise') + '</span></button>' +
+        (S.furs ? '<button onclick="hub3(\'ksellfur\')">Sell furs to the fleet merchants <span class="mut">\u2014 ' + S.furs + ' bale' + (S.furs === 1 ? '' : 's') + ' \u00b7 3 dirhams each \u00b7 to the purse</span></button>' : '') +
+        (S.captives ? '<button onclick="hub3(\'ksellcap\')">Sell captives to the fleet merchants <span class="mut">\u2014 ' + S.captives + ' head \u00b7 5 dirhams each \u00b7 to the purse</span></button>' : '')
       : '') +
     ((hub === 'holmgard')
-      ? '<button onclick="hub3(\'buyfur\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (freeH < 1 ? '— hold full' : '— 2 dirhams · 1 unit · pays 5 at Miklagard')) + '</span></button>' +
-        '<button onclick="hub3(\'buycap\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Take a captive <span class="mut">' + (S.silver < 4 ? '— purse too light (4 dirhams)' : (freeH < 2 ? '— hold full' : '— 4 dirhams · 2 units · walks and eats')) + '</span></button>' +
-        ((S.furs - (S.flags.hmgFur || 0)) ? '<button onclick="hub3(\'sellfur\')">Sell the furs to a factor <span class="mut">— ' + (S.furs - (S.flags.hmgFur || 0)) + ' bale' + ((S.furs - (S.flags.hmgFur || 0)) === 1 ? '' : 's') + ' not bought here · 3 dirhams each · to the purse</span></button>' : '') +
-        ((S.captives - (S.flags.hmgCap || 0)) ? '<button onclick="hub3(\'sellcap\')">Sell the captives to a factor <span class="mut">— ' + (S.captives - (S.flags.hmgCap || 0)) + ' head not bought here · 6 dirhams each · to the purse</span></button>' : '')
+      ? '<button onclick="hub3(\'buyfur\')" ' + (S.silver < 2 || freeH < 1 ? 'disabled' : '') + '>Buy a fur bale <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : (freeH < 1 ? '\u2014 hold full' : '\u2014 2 dirhams \u00b7 1 unit \u00b7 pays 5 at Miklagard')) + '</span></button>' +
+        '<button onclick="hub3(\'buycap\')" ' + (S.silver < 4 || freeH < 2 ? 'disabled' : '') + '>Take a captive <span class="mut">' + (S.silver < 4 ? '\u2014 purse too light (4 dirhams)' : (freeH < 2 ? '\u2014 hold full' : '\u2014 4 dirhams \u00b7 2 units \u00b7 walks and eats')) + '</span></button>' +
+        ((S.furs - (S.flags.hmgFur || 0)) ? '<button onclick="hub3(\'sellfur\')">Sell the furs to a factor <span class="mut">\u2014 ' + (S.furs - (S.flags.hmgFur || 0)) + ' bale' + ((S.furs - (S.flags.hmgFur || 0)) === 1 ? '' : 's') + ' not bought here \u00b7 3 dirhams each \u00b7 to the purse</span></button>' : '') +
+        ((S.captives - (S.flags.hmgCap || 0)) ? '<button onclick="hub3(\'sellcap\')">Sell the captives to a factor <span class="mut">\u2014 ' + (S.captives - (S.flags.hmgCap || 0)) + ' head not bought here \u00b7 6 dirhams each \u00b7 to the purse</span></button>' : '')
       : '') +
-    '<button onclick="hub3(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman at the landing <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (sick3 ? '— 2 dirhams · heals the hurt' : '— 2 dirhams · no one hurt')) + '</span></button>' +
-    '<button onclick="hub3(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day <span class="mut">' + (S.flags.rested ? '— already rested' : '— everyone eats · +spirits · the hurt mend') + '</span></button>' +
-    '<button onclick="hub3(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '— already feasted' : (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · spirits +2')) + '</span></button>' +
+    '<button onclick="hub3(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman at the landing <span class="mut">' + (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : (sick3 ? '\u2014 2 dirhams \u00b7 heals the hurt' : '\u2014 2 dirhams \u00b7 no one hurt')) + '</span></button>' +
+    '<button onclick="hub3(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day <span class="mut">' + (S.flags.rested ? '\u2014 already rested' : '\u2014 everyone eats \u00b7 +spirits \u00b7 the hurt mend') + '</span></button>' +
+    '<button onclick="hub3(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '\u2014 already feasted' : (S.silver < 2 ? '\u2014 purse too light (2 dirhams)' : '\u2014 2 dirhams \u00b7 spirits +2')) + '</span></button>' +
     '<button class="primary" onclick="hub3(\'castoff3\')">' + cast3 + '</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
     '</div>';
 }
 function goSouth() { HMG.begin3(S); save(); render(); }
-// round 42: felt answers — every hub/market action confirms what changed, so a tap is never silent
+// round 42: felt answers \u2014 every hub/market action confirms what changed, so a tap is never silent
 var toastT = null;
 function toast(msg) {
   if (!document.createElement || !document.body) return;   // headless verify harness: silently skip
@@ -436,7 +436,7 @@ function actToast(b) {
   if (nw > b.w) t.push((nw - b.w) === 1 ? 'one of the crew hurt' : (nw - b.w) + ' of the crew hurt');
   else if (nw < b.w && nd === b.x) t.push('the hurt seen to');
   if (S.morale !== b.m) t.push('spirits ' + ((S.morale - b.m > 0) ? '+' : '') + (S.morale - b.m));
-  if (t.length) toast(t.join(' · '));
+  if (t.length) toast(t.join(' \u00b7 '));
 }
 function hub3(a) { if (a !== 'castoff3') keepScroll = true; var _b = snap(); HMG.hub3Act(S, a); save(); render(); actToast(_b); }
 // test jumps (round 39, his ask): land mid-road with a full company, an average purse, and the average day for that stage
