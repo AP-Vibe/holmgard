@@ -238,7 +238,7 @@ ok(r2.marks === 9 * 5 + 3 * 2 && r2.text.indexOf('6 dirhams of freight silver') 
 ok(g.HMG.dateStr(82) === 'Jun 30' && g.HMG.dateStr(113) === 'Jul 31' && g.HMG.dateStr(138) === 'Aug 25' && g.HMG.dateStr(150) === 'Sep 6', 'the calendar runs the whole season Apr to Sep');
 ok(g.HMG.FLEET === 90 && g.HMG.SEACLOSE === 138, 'gate constants: the Kiev fleet Jul 8, the sea closes Aug 25');
 ok(m[1].indexOf('goSouth()') >= 0 && m[1].indexOf('The road does not end here') >= 0, 'arriving Holmgard offers the southbound road');
-ok(m[1].indexOf('The southern road') >= 0 && m[1].indexOf('pays at Kiev') >= 0, 'help card explains the third leg');
+ok(m[1].indexOf('The southern road') >= 0 && m[1].indexOf('pays at K\u00e6nugar\u00f0r') >= 0, 'help card explains the third leg');
 
 function run3Road(setup) {
   g.newGame(777);
@@ -277,7 +277,7 @@ for (var k3b = 0; k3b < 2; k3b++) {
   g.HMG.applyChoice(g.S, 0);
 }
 ok(g.S.phase === 'end' && g.S.result && g.S.result.dest === 'Miklagard' && g.S.result.marks === 2 * 5 + 1 * 12, 'the road ends at Miklagard scoring furs 5 and captives 12 (22 mark)');
-ok(g.S.result.text.indexOf('3 freight bales settled at Kiev') >= 0, 'the finale text recounts the freight settlement');
+ok(g.S.result.text.indexOf('3 freight bales settled at K\u00e6nugar\u00f0r') >= 0, 'the finale text recounts the freight settlement');
 
 // late fleet: arrive Kiev after day 90 -> you came south behind the June fleet
 run3Road(function (st) { st.lateFleetTest = true; });
@@ -690,6 +690,45 @@ ok(g.S.silver === _k0 - 2 + 9 + 10 && g.S.captives === 0, 'Kiev factor buys capt
 g.newGame(55); g.S.leg = 3; g.S.sub = 1; g.S.hub = 'gnezdovo'; g.S.phase = 'hub3'; g.S.furs = 1;
 g.hub3('ksellfur'); g.hub3('kbread');
 ok(g.S.furs === 1, 'the Kiev factor and Kiev bread do not act at other hubs (guards hold)');
+
+// round 56 / his call: wounds first — the death curve comes to the southern road
+ok(m[1].indexOf('function wound(s, n)') >= 0, 'the wound helper exists: risky water costs crew hp');
+ok(m[1].indexOf('death only if untreated') >= 0, 'the wound helper keeps the design law: nothing dies outright');
+ok(m[1].indexOf('progress: 8 }); wound(s, 1); }   // round 56: warp through with lines') >= 0, 'rapids1 warping wounds one man — the lines tear hands');
+ok(m[1].indexOf('wound(s, 1); }   // run under oar: the stone takes blood for the hull') >= 0, 'a failed under-oar run at the first rapid wounds one');
+ok(m[1].indexOf('wound(s, 2); }   // round 56: the rope may hold') >= 0 && m[1].indexOf('wound(s, 2); }   // round 56: the stone takes blood for the hull') >= 0, 'Nenasytets drag and loaded-run failures wound two each — the signature hazard');
+ok(m[1].indexOf('wound(s, 1); } }   // round 56: the sand bar throws men') >= 0, 'a failed deep-channel run at the delta wounds one');
+ok(m[1].indexOf('progress: 8 }); wound(s, 1); }   // round 56: holding out to sea') >= 0 && m[1].indexOf('wound(s, 1); } }   // round 56: the lee shore pays out in men') >= 0, 'the Black Sea storm wounds on both risky options');
+ok(m[1].indexOf('wound(s, 1); }   // round 56: the keel gambles') >= 0, 'a failed skid gamble at the watershed portage wounds one');
+ok(m[1].indexOf('wound(s, 1); }   // round 56: hauling on against the Ilmen') >= 0, 'hauling on against the Ilmen wounds one');
+ok(m[1].indexOf('the southern landings keep a wisewoman too') >= 0, 'hub3Act gains the wisewoman — treatment parity with the northern legs');
+ok(m[1].indexOf('if (!c.dead && c.hp < 2) c.hp += 1; });   // round 56: wounds first') >= 0, 'hub rest now mends the hurt (+1 hp)');
+ok(m[1].indexOf('The wisewoman at the landing') >= 0 && m[1].indexOf('the hurt mend') >= 0, 'the hub buttons teach rest and healing');
+ok(m[1].indexOf('one of the crew hurt') >= 0 && m[1].indexOf('a man lost') >= 0 && m[1].indexOf('the hurt seen to') >= 0, 'wounds, losses and healing all answer on the toast');
+ok(m[1].indexOf('function choose(i) { var _b = snap();') >= 0, 'event choices are never silent (choose wires the toast)');
+ok(m[1].indexOf('takes blood before it takes lives') >= 0, 'the help card teaches the wounds-first curve');
+// behavior: legs 1-2 keep their old rest semantics (graveF steadying only, no hp heal)
+g.newGame(55);
+g.S.leg = 2; g.S.phase = 'hub'; g.S.flags.rested = false; g.S.silver = 10;
+g.HMG.wound(g.S, 2);
+const hurtL2 = g.S.crew.filter(c => !c.dead && c.hp < 2).length;
+g.hub('rest');
+ok(g.S.crew.filter(c => !c.dead && c.hp < 2).length === hurtL2, 'legs 1-2 rest does not heal hp (the southern road owns the wound economy)');
+
+// round 56 part 2 / his five parked calls: the saga names land, Cherson card 22 wires in, the 1229-treaty flavor lines go live
+ok(m[1].indexOf('Smaleskja \u2014 the smola-tar waystation') >= 0, 'the waystation hub card goes Norse: Smaleskja (his pick, saga form)');
+ok(m[1].indexOf('K\u00e6nugar\u00f0r \u2014 the June gathering') >= 0, 'the river gathering goes Norse: K\u00e6nugar\u00f0r (his call, Old Norse)');
+ok(m[1].indexOf("['Gnezdovo', 'Smaleskja']") >= 0 && m[1].indexOf("['Kiev', 'K\u00e6nugar\u00f0r']") >= 0, 'the skippers\u2019 board keeps its code tags and shows the saga labels');
+ok(m[1].indexOf('K\u00e6nugar\u00f0r gates the road') >= 0 && m[1].indexOf('gathers at K\u00e6nugar\u00f0r') >= 0, 'the road news reads K\u00e6nugar\u00f0r');
+ok(m[1].indexOf('the watershed portage to Smaleskja') >= 0 && m[1].indexOf('settled at K\u00e6nugar\u00f0r \u2014 ') >= 0, 'the hint and the finale recount both go Norse');
+ok(m[1].indexOf('Place-names \\u2014 the saga forms') >= 0, 'the help card carries the naming provenance label');
+ok(m[1].indexOf("s.hub === 'gnezdovo'") >= 0 && m[1].indexOf("s.hub === 'kiev'") >= 0 && m[1].indexOf("['Gnezdovo', 'Kiev', 'Cherson'][st - 2]") >= 0, 'code identifiers and board data tags stay Gnezdovo/Kiev (his rule)');
+// flavor lines from the Smolensk-1229 evidence (Run 13/14, his adoption call: prices stay dirhams, squirrel color allowed)
+ok(m[1].indexOf('the weigher takes his fee in squirrel skins \u2014 two to the silver mark') >= 0, 'the weigher\u2019s fee lands as Smaleskja color');
+ok(m[1].indexOf('waits its turn by lot \u2014 the river law casts the dice') >= 0, 'portage priority by lot lands in the watershed portage');
+ok(m[1].indexOf('at the agreed wage and not a coin above') >= 0, 'shipwreck help at the agreed wage lands in the Black Sea storm');
+// Cherson card 22 wired at the diet (replaces the round-52 stopgap quarantine crop)
+ok(/var ART3 = \{[\s\S]*?cherson: "data:image\/webp;base64,/.test(m[1]), 'the ART3 hub set carries the new cherson card (his pick 22, harbor mist)');
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
