@@ -170,6 +170,18 @@ var HMG = (function () {
     s.sick.stage = 3; s.sick.resolved = false;
   }
 
+  function wound(s, n) {   // round 56, his call: wounds first — risky water costs crew hp, death only if untreated
+    var living = s.crew.filter(function (c) { return !c.dead && c.hp > 0; });
+    var hurt = [];
+    for (var k = 0; k < n && living.length; k++) {
+      var v = living.splice(Math.floor(rand(s) * living.length), 1)[0];
+      v.hp -= 1;
+      if (v.hp === 0) v.graveF = 2;   // down, not dead — he has a few days in him if someone sees to him
+      hurt.push(v.name);
+    }
+    return hurt;
+  }
+
   function upkeep(s) {
     var mouths = 1 + aliveCrew(s) + (s.leg >= 2 ? s.captives : 0);  // skipper + living hands + any captives aboard (each eats one ration a day)
     if (s.food >= mouths) { s.food -= mouths; }
@@ -290,11 +302,11 @@ var HMG = (function () {
         else if (i === 1) { if (s.silver >= 6) { s.silver -= 6; adj(s, { progress: 12 }); } else adj(s, { progress: 5, morale: -1 }); }
         else {
           if (rand(s) < 0.5) adj(s, { hull: -10, progress: 10 });
-          else adj(s, { hull: -18, progress: 10, wet: 1 });
+          else { adj(s, { hull: -18, progress: 10, wet: 1 }); wound(s, 1); }   // round 56: the keel gambles — and the crew's backs pay for the skids
         }
         break;
       case 'ilmenstorm':   // storm on the Ilmen: numbers as the lake storm, rivers offer no sea room
-        if (i === 0) adj(s, { hull: -12, progress: 7, morale: -1 });
+        if (i === 0) { adj(s, { hull: -12, progress: 7, morale: -1 }); wound(s, 1); }   // round 56: hauling on against the Ilmen — a man goes down to the boom and the spray
         else if (i === 1) adj(s, { hull: -2, progress: 3 });
         else { if (rand(s) < 0.5) adj(s, { progress: 13, morale: 1 }); else adj(s, { hull: -25, wet: 1 }); }
         break;
@@ -323,10 +335,10 @@ var HMG = (function () {
         break;
       // build round 3: the rapids road — seven rapids, Nenasytets, Khortytsia, the Pecheneg parley, the delta
       case 'rapids1':   // the first of the seven: three passage modes per the DAI
-        if (i === 0) adj(s, { hull: (s.flags.lateFleet ? -14 : -6), progress: 8 });   // warp through with lines; alone, no fleet hands to haul
+        if (i === 0) { adj(s, { hull: (s.flags.lateFleet ? -14 : -6), progress: 8 }); wound(s, 1); }   // round 56: warp through with lines; alone, no fleet hands to haul — the lines tear hands
         else if (i === 1) {
           if (rand(s) < 0.5) adj(s, { progress: 14 });
-          else adj(s, { hull: (s.flags.lateFleet ? -26 : -18), progress: 6, wet: 1 });   // run under oar
+          else { adj(s, { hull: (s.flags.lateFleet ? -26 : -18), progress: 6, wet: 1 }); wound(s, 1); }   // run under oar: the stone takes blood for the hull
         } else {
           adj(s, { progress: 5 });   // walk the cargo round
           if (s.captives > 0 && rand(s) < 0.25) s.captives -= 1;
@@ -338,10 +350,10 @@ var HMG = (function () {
           if (s.captives > 0 && rand(s) < 0.35) s.captives -= 1;
         } else if (i === 1) {   // drag the empty boat through with volunteers on the line
           if (rand(s) < 0.45) adj(s, { progress: 12 });
-          else adj(s, { hull: (s.flags.lateFleet ? -30 : -22), progress: 6, wet: 1 });
+          else { adj(s, { hull: (s.flags.lateFleet ? -30 : -22), progress: 6, wet: 1 }); wound(s, 2); }   // round 56: the rope may hold — when it does not, the line-men pay for it
         } else {   // run it loaded — a fool's saving
           if (rand(s) < 0.25) adj(s, { progress: 15, morale: 2 });
-          else adj(s, { hull: -35, wet: 1, morale: -2 });
+          else { adj(s, { hull: -35, wet: 1, morale: -2 }); wound(s, 2); }   // round 56: the stone takes blood for the hull
         }
         break;
       case 'khortytsia':   // the great island: the cock sacrifice, a morale omen
@@ -360,7 +372,7 @@ var HMG = (function () {
         }
         break;
       case 'delta':   // the reed islands and channels before the bluffs
-        if (i === 0) { if (rand(s) < 0.5) adj(s, { progress: 14 }); else adj(s, { hull: -12, progress: 6 }); }
+        if (i === 0) { if (rand(s) < 0.5) adj(s, { progress: 14 }); else { adj(s, { hull: -12, progress: 6 }); wound(s, 1); } }   // round 56: the sand bar throws men into the channel stakes
         else adj(s, { progress: 5 });
         break;
       // build round 4: the Greek sea run
@@ -373,9 +385,9 @@ var HMG = (function () {
         else adj(s, { progress: 13 });                                                                                     // sail apart, faster and alone
         break;
       case 'cstorm':   // the Black Sea storm
-        if (i === 0) adj(s, { hull: -10, progress: 8 });
+        if (i === 0) { adj(s, { hull: -10, progress: 8 }); wound(s, 1); }   // round 56: holding out to sea — the pumps and the splash take their toll
         else if (i === 1) { s.silver = Math.max(0, s.silver - 4); adj(s, { progress: 5 }); }   // put in at a fisher haven
-        else { if (rand(s) < 0.5) adj(s, { progress: 15, morale: 1 }); else adj(s, { hull: -25, wet: 1, morale: -2 }); }
+        else { if (rand(s) < 0.5) adj(s, { progress: 15, morale: 1 }); else { adj(s, { hull: -25, wet: 1, morale: -2 }); wound(s, 1); } }   // round 56: the lee shore pays out in men when the timing fails
         break;
       case 'mesembria':   // the Mesembria landfall: tar, water, the last cheap bread
         if (i === 0) { s.silver = Math.max(0, s.silver - 2); adj(s, { food: 15, hull: 10, progress: 3 }); }
@@ -508,9 +520,14 @@ var HMG = (function () {
     else if (a === 'ksellfur' && s.hub === 'kiev' && s.furs > 0) { s.silver += s.furs * 3; s.furs = 0; }   // round 55: the fleet merchants pay above the waystation's price — nothing can be BOUGHT here, so no loop; the rapids road may still take what they carry
     else if (a === 'ksellcap' && s.hub === 'kiev' && s.captives > 0) { s.silver += s.captives * 5; s.captives = 0; }
     else if (a === 'sellcap' && s.hub === 'holmgard' && (s.captives - (s.flags.hmgCap || 0)) > 0) { var cc = s.captives - (s.flags.hmgCap || 0); s.silver += cc * 6; s.captives -= cc; }
+    else if (a === 'wise' && s.silver >= 2) {   // round 56, his call: the southern landings keep a wisewoman too — treatment parity with the northern legs
+      s.silver -= 2;
+      s.crew.forEach(function (c) { if (!c.dead && c.hp < 2) { c.hp += 1; c.graveF = 2; } });
+    }
     else if (a === 'rest' && !s.flags.rested) {
       s.flags.rested = true;
       s.morale = Math.min(10, s.morale + 1);
+      s.crew.forEach(function (c) { if (!c.dead && c.hp < 2) c.hp += 1; });   // round 56: wounds first — a day off the water sees to the hurt; death only if untreated
       s.crew.forEach(function (c) { if (!c.dead && c.hp === 0) c.graveF = 2; });
       upkeep(s);
       if (s.day > 150) { s.phase = 'end'; s.result = ending(s, 'seaclose'); }
@@ -696,7 +713,7 @@ var HMG = (function () {
   return {
     newRun: newRun, applyChoice: applyChoice, marketAct: marketAct,
     hubAct: hubAct, enterHub: enterHub, holdUsed: holdUsed, ending2: ending2,
-    begin3: begin3, hub3Act: hub3Act, arrive3: arrive3, ending3: ending3, leg3Dest: leg3Dest, drawMorning: drawMorning,
+    begin3: begin3, hub3Act: hub3Act, arrive3: arrive3, ending3: ending3, leg3Dest: leg3Dest, drawMorning: drawMorning, wound: wound,
     HUB3N: HUB3N, FLEET: FLEET, SEACLOSE: SEACLOSE,
     currentEvent: currentEvent, dateStr: dateStr, moraleLabel: moraleLabel,
     begin: function (s) { s.pending = drawMorning(s); s.phase = 'day'; },
@@ -846,7 +863,7 @@ function viewHelp() {
     '<div><span>Journey length \u2014 the long bar</span>The bar empties each leg. First: Birka to Aldeigjuborg — near 500 sea-miles, a fair crossing 15\u201320 days. Second: upriver to Holmgard — near 120 miles, 15\u201320 days loaded. Every day\u2019s choices add distance: bold ones run, careful ones crawl. Losing hands slows the boat, because oars need backs.</div>' +
     '<div><span>The landing \u2014 between the legs</span>At Aldeigjuborg the cloth is scored and paid out. The hub screen follows: hire hands from the beach, load furs (2 dirhams, 1 hold unit) or a captive (4 dirhams, 2 hold units), or take a merchant\u2019s freight bale (free, 1 hold unit, pays 2 dirhams at Holmgard \u2014 good silver when the purse runs thin, but it crowds out furs), then cast off up the river. The hold fits 12 units.</div>' +
     '<div><span>Captives \u2014 hold and pot</span>A captive is cargo that eats: one ration a day, counted in the day\u2019s mouths. If the pot runs dry, the crew eats first, the captives go hungry, and the crew hears them (spirits drop). At the rapids, walking them round means one may bolt for the woods.</div>' +
-    '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Gnezdovo, down the Dnieper to Kiev, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears Kiev early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Gnezdovo pays at Kiev; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. At Kiev the gathering\'s merchants pay quick silver too — 3 dirhams a bale for furs, 5 a head for captives — before the rapids road takes its toll. The rapids road below Kiev: warp through on lines, run under oar, or walk the cargo round — Nenasytets is the big one, and a captive on the chain-line may bolt. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin. The Greek sea: the summons seals at Cherson decide who sails, the treaty dromons escort what they can see — Mesembria has the last cheap bread, St Aitherios the last re-rig, and then the Horn. At Cherson the Greek market is open: a bale of wine, oil or silk costs 3 dirhams and 1 unit of hold — the factor pays 6 a bale at Miklagard, so spare hold and spare silver should become goods.</div>' +
+    '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Gnezdovo, down the Dnieper to Kiev, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears Kiev early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Gnezdovo pays at Kiev; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. At Kiev the gathering\'s merchants pay quick silver too — 3 dirhams a bale for furs, 5 a head for captives — before the rapids road takes its toll. The rapids road below Kiev: warp through on lines, run under oar, or walk the cargo round — Nenasytets is the big one, and a captive on the chain-line may bolt. The southern water takes blood before it takes lives: warping through on lines and failed gambles hurt the men — hurt men still row, but a downed man dies only untended, so rest at a landing mends the hurt, and every hub keeps a wisewoman (2 dirhams) who heals. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin. The Greek sea: the summons seals at Cherson decide who sails, the treaty dromons escort what they can see — Mesembria has the last cheap bread, St Aitherios the last re-rig, and then the Horn. At Cherson the Greek market is open: a bale of wine, oil or silk costs 3 dirhams and 1 unit of hold — the factor pays 6 a bale at Miklagard, so spare hold and spare silver should become goods.</div>' +
     '<div><span>The convoy window \u2014 day 32 (May 11)</span>The thaw clears Ladoga and the early southbound convoys leave the landing. Arrive after day 32 and the buyer pays half; drag past day 44 and the Kiev road closes for good.</div>' +
     '<div><span>Names \u2014 chips under the bar</span>Your crew. Each is a person who lives or dies by your choices, and each death costs 10 dirhams of the settlement and slows the boat.</div>' +
     '</div>' +
