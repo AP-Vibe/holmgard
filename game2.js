@@ -183,7 +183,7 @@ function board() {
   if (el && el.blur) { try { el.blur(); } catch (e) {} }
   HMG.begin(S); save(); render();
 }
-function choose(i) { HMG.applyChoice(S, i); save(); render(); }
+function choose(i) { var _b = snap(); HMG.applyChoice(S, i); save(); render(); actToast(_b); }   // round 56: a choice is never silent — wounds and losses answer on the toast
 function mkt(a) { if (a !== 'castoff') keepScroll = true; var _b = snap(); HMG.marketAct(S, a); save(); render(); actToast(_b); }
 function viewDay() {
   var ev = HMG.currentEvent(S);
@@ -338,6 +338,7 @@ function viewHub3() {
   var daysOf = Math.floor(S.food / m3);
   var taken = S.crew.map(function (c) { return c.name; });
   var hireable = HMG.HIRES.filter(function (n) { return taken.indexOf(n) < 0; });
+  var sick3 = S.crew.some(function (c) { return !c.dead && c.hp < 2; });   // round 56: the wisewoman's label answers the crew's state
   var names3 = { holmgard: 'Holmgard', gnezdovo: 'Gnezdovo — the smola-tar waystation', kiev: 'Kiev — the June gathering', cherson: 'Cherson — the emperor\u2019s gate' };
   var intro3 = {
     holmgard: 'The settlement silver is in your purse, and south of the town the water-road runs to the Greek sea. Load the southern venture — the road is long, and the hold is what it is.',
@@ -392,7 +393,8 @@ function viewHub3() {
         ((S.furs - (S.flags.hmgFur || 0)) ? '<button onclick="hub3(\'sellfur\')">Sell the furs to a factor <span class="mut">— ' + (S.furs - (S.flags.hmgFur || 0)) + ' bale' + ((S.furs - (S.flags.hmgFur || 0)) === 1 ? '' : 's') + ' not bought here · 3 dirhams each · to the purse</span></button>' : '') +
         ((S.captives - (S.flags.hmgCap || 0)) ? '<button onclick="hub3(\'sellcap\')">Sell the captives to a factor <span class="mut">— ' + (S.captives - (S.flags.hmgCap || 0)) + ' head not bought here · 6 dirhams each · to the purse</span></button>' : '')
       : '') +
-    '<button onclick="hub3(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day <span class="mut">' + (S.flags.rested ? '— already rested' : '— everyone eats · +spirits') + '</span></button>' +
+    '<button onclick="hub3(\'wise\')" ' + (S.silver < 2 ? 'disabled' : '') + '>The wisewoman at the landing <span class="mut">' + (S.silver < 2 ? '— purse too light (2 dirhams)' : (sick3 ? '— 2 dirhams · heals the hurt' : '— 2 dirhams · no one hurt')) + '</span></button>' +
+    '<button onclick="hub3(\'rest\')" ' + (S.flags.rested ? 'disabled' : '') + '>Rest the crew a day <span class="mut">' + (S.flags.rested ? '— already rested' : '— everyone eats · +spirits · the hurt mend') + '</span></button>' +
     '<button onclick="hub3(\'feast\')" ' + (S.flags.feasted || S.silver < 2 ? 'disabled' : '') + '>Throw a feast for the crew <span class="mut">' + (S.flags.feasted ? '— already feasted' : (S.silver < 2 ? '— purse too light (2 dirhams)' : '— 2 dirhams · spirits +2')) + '</span></button>' +
     '<button class="primary" onclick="hub3(\'castoff3\')">' + cast3 + '</button>' +
     '<button class="small" onclick="toTitle()">Save &amp; to title</button>' +
@@ -409,7 +411,7 @@ function toast(msg) {
   if (toastT) clearTimeout(toastT);
   toastT = setTimeout(function () { box.innerHTML = ''; }, 2400);
 }
-function snap() { return { s: S.silver, d: S.food, h: S.hull, f: S.furs, c: S.captives, g: S.freight || 0, m: S.morale, k: S.greek || 0 }; }
+function snap() { return { s: S.silver, d: S.food, h: S.hull, f: S.furs, c: S.captives, g: S.freight || 0, m: S.morale, k: S.greek || 0, w: S.crew.filter(function (c) { return !c.dead && c.hp < 2; }).length, x: S.crew.filter(function (c) { return c.dead; }).length }; }   // round 56: the crew's hurt counts in the felt-answer snapshot
 function actToast(b) {
   var t = [];
   if (S.silver !== b.s) t.push(((S.silver - b.s > 0) ? '+' : '') + (S.silver - b.s) + ' dirhams');
@@ -419,6 +421,11 @@ function actToast(b) {
   if (S.captives !== b.c) t.push(((S.captives - b.c > 0) ? '+' : '') + (S.captives - b.c) + (S.captives - b.c === 1 ? ' captive' : ' captives'));
   if ((S.freight || 0) !== b.g) t.push((((S.freight || 0) - b.g > 0) ? '+' : '') + ((S.freight || 0) - b.g) + ' freight');
   if ((S.greek || 0) !== b.k) t.push((((S.greek || 0) - b.k > 0) ? '+' : '') + (S.greek || 0) - b.k + ((S.greek || 0) - b.k === 1 ? ' Greek bale' : ' Greek bales'));
+  var nd = S.crew.filter(function (c) { return c.dead; }).length;
+  var nw = S.crew.filter(function (c) { return !c.dead && c.hp < 2; }).length;
+  if (nd !== b.x) t.push((nd - b.x) === 1 ? 'a man lost' : (nd - b.x) + ' men lost');   // round 56: losses and wounds surface the moment they happen
+  if (nw > b.w) t.push((nw - b.w) === 1 ? 'one of the crew hurt' : (nw - b.w) + ' of the crew hurt');
+  else if (nw < b.w && nd === b.x) t.push('the hurt seen to');
   if (S.morale !== b.m) t.push('spirits ' + ((S.morale - b.m > 0) ? '+' : '') + (S.morale - b.m));
   if (t.length) toast(t.join(' · '));
 }
