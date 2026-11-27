@@ -193,7 +193,7 @@ ok(md.indexOf('ART2.riftwreck = "data:image/webp;base64,') >= 0 && md.indexOf('f
 ok(m[1].indexOf('script.google.com') < 0, 'no Apps Script URL anywhere (the dead GAS deployment is gone)');
 ok(['cloudHtml','cloudPush','cloudPull','cloudUrl','CLOUDDEFAULT'].every(function (x) { return m[1].indexOf(x) < 0; }), 'no GAS cloud-board code remains in the game');
 ok(m[1].indexOf("var BOARDAPI = 'https://") >= 0, 'BOARDAPI filled: round 49 landed the shared-board endpoint (was an empty stub in round 48)');
-ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 38, 'the 38 webp scenes survived the GAS surgery');
+ok(m[1].indexOf('data:image/webp;base64,') > 0 && m[1].split('data:image/webp;base64,').length - 1 === 42, 'the 42 webp scenes survived the GAS surgery (round 57: +4 east hub cards)');
 
 
 // round 30: the spring clock (his call: run starts early April from Birka; zero winters; convoy framing)
@@ -584,9 +584,9 @@ ok(m[1].indexOf('rapids1: \'seals\'') >= 0 && m[1].indexOf('parley: \'chud\'') >
 
 // round 47 / art diet: all art re-encoded to 480px webp q62, 821KB -> 589KB, no jpeg blobs left
 ok(m[1].indexOf('data:image/jpeg') < 0, 'no jpeg data URIs remain (the gnezdovo and cherson stragglers converted)');
-ok(m[1].split('data:image/webp;base64,').length - 1 === 38, 'all 36 embedded scenes are webp');
+ok(m[1].split('data:image/webp;base64,').length - 1 === 42, 'all 40 embedded scenes are webp (round 57: the east hub cards Timerevo, Bulgar, Itil, Baghdad)');
 const sz = require('fs').statSync('canvases/holmgard-01-the-crossing/CANVAS.md').size;
-ok(sz < 800000 && sz > 400000, 'canvas ' + sz + ' bytes: the post-round-52 window (seven event scenes added on top of the dieted set)');
+ok(sz < 900000 && sz > 400000, 'canvas ' + sz + ' bytes: the round-57 window (the east road lands, four diet-weight hub cards on top of the round-56 set)');
 
 // round 48 / PWA: manifest link + service-worker registration, game installs and plays offline after first load
 ok(m[0] && md.indexOf('<link rel="manifest" href="./manifest.webmanifest" />') >= 0, 'manifest linked in the head');
@@ -729,6 +729,180 @@ ok(m[1].indexOf('waits its turn by lot \u2014 the river law casts the dice') >= 
 ok(m[1].indexOf('at the agreed wage and not a coin above') >= 0, 'shipwreck help at the agreed wage lands in the Black Sea storm');
 // Cherson card 22 wired at the diet (replaces the round-52 stopgap quarantine crop)
 ok(/var ART3 = \{[\s\S]*?cherson: "data:image\/webp;base64,/.test(m[1]), 'the ART3 hub set carries the new cherson card (his pick 22, harbor mist)');
+
+// ===================== ROUND 57: THE EAST ROAD — the Baghdad branch (per the signed brief v1.1, his go) =====================
+// source pins: the engine
+ok(m[1].indexOf('var EBULGAR = 135;') >= 0 && m[1].indexOf('var EDELTA = 152;') >= 0, 'round 57: the east clocks exist — leave Bulgar by day 135, the delta holds to day 152');
+ok(g.HMG.EBULGAR === 135 && g.HMG.EDELTA === 152, 'the east clocks export for the harness');
+ok(JSON.stringify(g.HMG.HUB3E) === JSON.stringify(['holmgard','timerevo','bulgar','itil']), 'HUB3E exports the east hub ladder (Baghdad is never a hub)');
+ok(m[1].indexOf("var CORR3 = [") >= 0 && m[1].indexOf("var TRUNK3 = [") >= 0 && m[1].indexOf("var ITIL3 = [") >= 0, 'the east decks exist: the corridor, the trunk, the Khazar shore');
+ok(m[1].indexOf("id: 'merya', need: function (s) { return s.silver >= 2; } }") >= 0, 'the Merya fish camp prices its fish at the pool gate');
+ok(m[1].indexOf("s.flags.e1Msta = true; return { id: 'msta' };") >= 0 && m[1].indexOf("s.flags.e1Haul = true; return { id: 'hauler' };") >= 0, 'the corridor spine: the Msta shallows at 30, the haul-over at 70');
+ok(m[1].indexOf("s.flags.e2Kama = true; return { id: 'kama' };") >= 0 && m[1].indexOf("s.flags.e3Judge = true; return { id: 'judge' };") >= 0, 'the trunk and Itil-run spines: the Kama junction, the pagan judge');
+ok(m[1].indexOf("if (s.road === 'east') arriveEast(s); else arrive3(s); return;") >= 0, 'the east road lands at its own hubs (progress arrival forks by road)');
+ok(m[1].indexOf("s.road === 'east' && s.day > EDELTA + 20") >= 0, 'the east blanket: three weeks past the delta window the season is gone');
+// the TEXTS
+['msta', 'hauler', 'merya', 'watchers', 'volgastorm', 'kama', 'judge', 'deltaE'].forEach(function (id) {
+  ok(m[1].indexOf(id + ': { title:') >= 0, 'the east event ' + id + ' has its card text');
+});
+ok(m[1].indexOf('keels gathering at the gulf') >= 0, 'the 913 shadow lives as bank rumor (his D6 call)');
+ok(m[1].indexOf('the river law casts the dice for whose keel hauls first.') >= 0 && m[1].indexOf('The fleet waits its turn by lot') >= 0, 'the portage-by-lot river law holds on the east corridor too');
+// the rumor-only law: the watchers event carries no hull or wound damage
+const wBlock = m[1].slice(m[1].indexOf("case 'watchers':"), m[1].indexOf("case 'volgastorm':"));
+ok(wBlock.indexOf('hull') < 0 && wBlock.indexOf('wound') < 0 && wBlock.indexOf('wet') < 0, 'the Khazar shore watchers never draw blood — rumor and tension only, never combat');
+// the wounds-first curve extends east
+ok(m[1].indexOf('adj(s, { hull: -22, progress: 14, wet: 1 }); wound(s, 1); }') >= 0, 'a failed Msta warp wounds one (the lines tear hands)');
+ok(m[1].indexOf('the keel gambles — the crew\'s backs pay for the skids') >= 0, 'a failed haul-over gamble wounds one');
+ok(m[1].indexOf("case 'volgastorm':") >= 0 && m[1].slice(m[1].indexOf("case 'volgastorm':"), m[1].indexOf("case 'kama':")).split('wound(s, 1)').length - 1 === 2, 'the trunk storm wounds on both risky options, like the Black Sea storm');
+// the judge: the parley rule, east edition — a lethal EVENT, never a war
+ok(m[1].indexOf('victim3j.hp = 0; victim3j.graveF = 0;') >= 0 && m[1].indexOf('the guards\' spears: he will not see the evening') >= 0, 'the fumbled court is a lethal single event (45%), like the parley arrow');
+ok(m[1].indexOf('the law knows the Rus') >= 0 && m[1].indexOf('seven judges, one for each confession') >= 0, 'the Rus have a recognized legal place (Run 15: the pagan judge)');
+// the engine: beginEast / arriveEast / endingE
+ok(m[1].indexOf('function beginEast(s)') >= 0 && m[1].indexOf('function arriveEast(s)') >= 0 && m[1].indexOf('function endingE(s, dest)') >= 0, 'the east engine exists: the fork, the landings, the three endings');
+ok(m[1].indexOf('base.marks = s.furs * 8;') >= 0, 'Baghdad scores the furs at 8 a bale — the Abbasid premium (design-tuned)');
+ok(m[1].indexOf('money-changers\\u2019 ten-for-one') >= 0, 'the dinar flavor is labeled design-tuned at ten-for-one');
+ok(m[1].indexOf('The chain ends at Bulgar') >= 0, 'captives walk free past Bulgar — no slave market on the east road beyond it (D4)');
+ok(m[1].indexOf('var coinT = Math.floor(s.silver / 10); var baleT = Math.floor(s.furs / 10);') >= 0, 'the khagan\\u2019s tenth at the gulf: one coin in ten, a bale in ten, counted whole');
+ok(m[1].indexOf("s.hub === 'bulgar' && s.day > EBULGAR") >= 0, 'Gate B\\u2019s hard edge: leave Bulgar by day 135 or the season dies at the market');
+ok(m[1].indexOf("var tenthc = Math.ceil(payc / 10);") >= 0, 'the Bulgar ruler\\u2019s one-in-ten is commuted as value (Ibn Fadlan\\u2019s market law)');
+ok(m[1].indexOf('var payc = s.captives * 6') >= 0 && m[1].indexOf('s.silver += s.furs * 4; s.furs = 0; upkeep(s); upkeep(s);') >= 0, 'the Bulgar slow sale: furs 4 a bale, and the sale eats two days');
+ok(m[1].indexOf('upkeep(s); upkeep(s); upkeep(s);') >= 0, 'the captive sale eats three days — the season\\u2019s clock pressure');
+// the south road untouched
+ok(m[1].indexOf("(s.hub === 'holmgard' || s.hub === 'gnezdovo') && s.road !== 'east' && holdUsed(s) + 1 <= HOLD") >= 0, 'south freight is guarded off the east road (Timerevo loads its own)');
+ok(m[1].indexOf("if (S.road === 'east') return viewHubE();") >= 0, 'the east road keeps its own hub cards');
+ok(m[1].indexOf("a === 'castoffE' && s.road === 'east'") >= 0, 'the east castoff never fires on the south road');
+// UI pins
+ok(m[1].indexOf('Take the east road — the Volga venture') >= 0, 'the fork is taught on the south Holmgard card');
+ok(m[1].indexOf('Hear the south road again') >= 0, 'the east fork card can send you back to hear the south road');
+ok(m[1].indexOf('Holmgard — the fork of the roads') >= 0 && m[1].indexOf('Timerevo — the timber waypoint') >= 0 && m[1].indexOf('Bulgar — the market of the Volga') >= 0 && m[1].indexOf('Itil — the khagan\\u2019s city') >= 0, 'the four east hub cards carry their names');
+ok(m[1].indexOf('the Msta corridor to Timerevo') >= 0 && m[1].indexOf('the Volga trunk to Bulgar') >= 0 && m[1].indexOf('the Khazar shore to Itil') >= 0, 'the header teaches the east leg names');
+ok(m[1].indexOf('The east road \\u2014 the Volga venture') >= 0, 'the help card teaches the east road');
+ok(m[1].indexOf("['Baghdad', 'Baghdad \\u2014 the City of Peace']") >= 0, 'the skippers\\u2019 board ladder puts Baghdad first (his D7)');
+ok(m[1].indexOf(String.fromCharCode(106,117,109,112,84,101,115,116) + '(\\\'e1\\\')') >= 0 && m[1].indexOf(String.fromCharCode(106,117,109,112,84,101,115,116) + '(\\\'e4\\\')') >= 0, 'the title screen carries the east test jumps');
+['timerevo', 'bulgar', 'itil', 'baghdad'].forEach(function (k) {
+  ok(m[1].indexOf(k + ': "data:image/webp;base64,') >= 0, 'ART3 carries the ' + k + ' hub card (moodboard diet)');
+});
+['bulgar', 'itil', 'baghdad'].forEach(function (k) {
+  ok(m[1].indexOf('ART3.' + k) >= 0, 'the east endings render the ' + k + ' card');
+});
+ok(m[1].indexOf("msta: 'fog', hauler: 'seals', merya: 'village', watchers: 'chud', volgastorm: 'storm', kama: 'calm', judge: 'village', deltaE: 'fog'") >= 0, 'the east events wear leg-1 fallback art until their own pass');
+
+// behavior: the fork and the road flags
+g.jumpTest('1');
+ok(g.S.road === undefined || g.S.road === 'south', 'the south road is the default');
+g.hub3('freight');
+ok((g.S.freight || 0) === 1, 'south freight loads at Holmgard on the south road');
+g.hub3('eastroad');
+ok(g.S.road === 'east' && g.S.hub === 'holmgard' && g.S.sub === 1 && g.S.phase === 'hub3', 'the fork: eastroad sets the east road at Holmgard');
+ok(g.S.flags.rested === false, 'the fork resets the rest window (a fresh venture card)');
+g.hub3('freight');
+ok((g.S.freight || 0) === 1, 'the south freight contract is barred on the east road');
+g.hub3('backwest');
+ok(g.S.road === 'south', 'the fork hears the south road again — nothing lost');
+g.hub3('freight');
+ok((g.S.freight || 0) === 2, 'freight loads again once back on the south road');
+
+// behavior: the east spine draws by subleg
+g.jumpTest('e1');
+g.S.progress = 35; g.S.lastEv = []; g.S.flags.e1Msta = false;
+ok(g.HMG.drawMorning(g.S).id === 'msta', 'the corridor spine draws the Msta shallows at 30');
+g.S.progress = 75; g.S.flags.e1Msta = true;
+ok(g.HMG.drawMorning(g.S).id === 'hauler', 'the corridor spine draws the haul-over at 70');
+g.jumpTest('e2'); g.S.progress = 60; g.S.lastEv = []; g.S.flags.e2Kama = false;
+ok(g.HMG.drawMorning(g.S).id === 'kama', 'the trunk spine draws the Kama junction at 55');
+g.jumpTest('e4'); g.S.sub = 3; g.S.progress = 60; g.S.lastEv = []; g.S.flags.e3Judge = false;
+ok(g.HMG.drawMorning(g.S).id === 'judge', 'the Itil-run spine draws the judge vignette at 55');
+
+// behavior: the corridor sim lands at Timerevo
+function simEast(sub, foodSet, policy) {
+  g.jumpTest('e' + sub);
+  g.S.food = foodSet; g.S.hull = 80; g.S.morale = 6;
+  g.HMG.hub3Act(g.S, 'castoffE');
+  let steps = 0;
+  while (g.S.phase === 'day' && steps++ < 60) {
+    const evID = g.S.pending && g.S.pending.id;
+    const t2 = g.HMG.currentEvent(g.S);
+    let pick2 = policy[evID] !== undefined ? policy[evID] % t2.options.length : 0;
+    g.choose(pick2);
+  }
+  return { phase: g.S.phase, hub: g.S.hub, sub: g.S.sub, flags: g.S.flags, day: g.S.day };
+}
+const simCorr = simEast(1, 260, {});
+ok(simCorr.phase === 'hub3' && simCorr.hub === 'timerevo' && simCorr.sub === 2, 'the corridor sim lands at Timerevo (sub 2)');
+ok(simCorr.flags.e1Msta === true && simCorr.flags.e1Haul === true, 'the whole corridor spine played in the sim');
+// the trunk sim: Timerevo freight settles at Bulgar (inline — the freight must survive the jump)
+g.jumpTest('e2');
+g.HMG.hub3Act(g.S, 'tfreight'); g.HMG.hub3Act(g.S, 'tfreight');
+ok(g.S.flags.eFreight === 2 && (g.S.freight || 0) === 2, 'Timerevo loads two east freight bales');
+g.S.food = 220; g.S.hull = 80; g.S.morale = 6;
+const silvTrunk = g.S.silver + 4;
+g.HMG.hub3Act(g.S, 'castoffE');
+let stepsTrunk = 0;
+while (g.S.phase === 'day' && stepsTrunk++ < 60) g.choose(0);
+ok(g.S.phase === 'hub3' && g.S.hub === 'bulgar' && g.S.sub === 3, 'the trunk sim lands at Bulgar (sub 3)');
+ok(g.S.flags.freightPaidE === 2 && g.S.flags.eFreight === 0 && (g.S.freight || 0) === 0 && g.S.silver === silvTrunk - 2, 'the Timerevo freight settled at Bulgar (2 bales, +4 to the purse; the sim bought provisions at the Kama junction en route)');
+// the Itil-run sim lands at Itil
+const simItil = simEast(3, 180, {});
+ok(simItil.phase === 'hub3' && simItil.hub === 'itil' && simItil.sub === 4, 'the Khazar-shore sim lands at Itil (sub 4, the last playable hub)');
+
+// behavior: the Bulgar payday computes, and the sales eat days
+g.jumpTest('e3');
+g.S.furs = 3; g.S.captives = 5; g.S.silver = 10; g.S.day = 92; g.S.food = 200;
+g.HMG.hub3Act(g.S, 'bsellfur');
+ok(g.S.silver === 22 && g.S.furs === 0 && g.S.day === 94, 'the Bulgar fur sale: 4 a bale into the purse, and it eats 2 days');
+g.HMG.hub3Act(g.S, 'bsellcap');
+ok(g.S.silver === 22 + 27 && g.S.captives === 0 && g.S.day === 97 && g.S.flags.tenthPaid === 3, 'the captive sale: 6 a head less the ruler\\u2019s tenth (30 pay, 3 taken), and it eats 3 days');
+
+// behavior: Gate B — the Bulgar overstay ends at Bulgar terms
+g.jumpTest('e3');
+g.S.furs = 3; g.S.captives = 2; g.S.silver = 10; g.S.day = 140;
+g.HMG.hub3Act(g.S, 'castoffE');
+ok(g.S.phase === 'end' && g.S.result.dest === 'Bulgar' && g.S.result.tier === 'bulgar', 'overstaying Bulgar: the season dies at the market (a lesser ending, not a fail)');
+ok(g.S.result.marks === 0 && g.S.result.silver === 10 + 12 + 10 && g.S.result.title === 'The season dies at the market', 'Bulgar terms auto-liquidate: furs 4, captives 6 less the tenth, into the purse');
+
+// behavior: Gate C — the delta window
+g.jumpTest('e4');
+g.S.silver = 50; g.S.furs = 6; g.S.captives = 1; g.S.day = 160;
+g.HMG.hub3Act(g.S, 'castoffE');
+ok(g.S.phase === 'end' && g.S.result.dest === 'Itil' && g.S.result.tier === 'itil' && g.S.result.title === 'The fleet does not sail this year', 'past day 152 at Itil: the fleet does not sail this year');
+ok(g.S.result.silver === 50 + 18 && g.S.result.text.indexOf('walk free') >= 0, 'Itil terms: the Khazar factor pays 3 a bale, and the captives walk free (no slave market at Itil)');
+
+// behavior: the tenth, then the one epilogue choice, then the Baghdad scorecard
+g.jumpTest('e4');
+g.S.silver = 50; g.S.furs = 12; g.S.captives = 0; g.S.day = 122; g.S.flags.freightPaidE = 2;
+g.HMG.hub3Act(g.S, 'castoffE');
+ok(g.S.phase === 'day' && g.S.pending && g.S.pending.id === 'deltaE', 'the Itil castoff hands you the delta choice');
+ok(g.S.silver === 45 && g.S.furs === 11, 'the khagan\\u2019s tenth counts whole: 5 coins of 50, 1 bale of 12');
+g.choose(0);
+ok(g.S.phase === 'end' && g.S.result.dest === 'Baghdad' && g.S.result.how === 'arrived', 'the delta choice ends the road at the Baghdad scorecard');
+ok(g.S.result.marks === 88, 'Baghdad scores the 11 bales at 8 each: 88 dirhams of marks');
+ok(g.S.result.text.indexOf('settled at Bulgar') >= 0 && g.S.result.text.indexOf('dinars') >= 0, 'the scorecard recounts the freight and the dinar flavor');
+const rE = g.S.result, scE = g.runScore(rE);
+ok(scE.total === 88 * 100 + scE.alive * 50 + 45 * 20, 'the east finale scores by the same formula (marks x100 + alive x50 + silver x20; the speed term is gone by design)');
+
+// behavior: the judge fumble is a lethal single event, never a war — 40 seeds
+let worstJud = 0, judKills = 0, judPhaseBad = 0;
+for (let sJ = 1; sJ <= 40; sJ++) {
+  g.newGame(sJ); g.board();
+  g.S.leg = 3; g.S.road = 'east'; g.S.sub = 3; g.S.phase = 'day'; g.S.morale = 5; g.S.pending = { id: 'judge' };
+  g.choose(2);
+  const deadJ = g.S.crew.filter(function (c) { return c.dead; }).length;
+  if (deadJ > worstJud) worstJud = deadJ;
+  if (deadJ === 1) judKills++;
+  if (g.S.phase !== 'day' || g.S.morale !== 3) judPhaseBad++;
+}
+ok(worstJud <= 1, 'the fumbled court kills at most one man where he stands (40 seeds, worst ' + worstJud + ')');
+ok(judKills > 0 && judKills < 40, 'the spear is real but not certain (' + judKills + ' of 40 seeds)');
+ok(judPhaseBad === 0, 'the court never makes a war state: the run continues on the water (40 seeds)');
+
+// behavior: an east hull-loss tags the stage's landing
+g.jumpTest('e1');
+g.S.hull = 1; g.HMG.hub3Act(g.S, 'castoffE');
+g.S.pending = { id: 'volgastorm' };
+g.choose(0);
+ok(g.S.phase === 'end' && g.S.result.how === 'sunk' && g.S.result.dest === 'Bulgar', 'an east corridor loss tags the stage\\u2019s landing (Bulgar), like the south fails tag theirs');
+
+// behavior: the south road is untouched — the south suites above all still pass on the same canvas
 
 console.log('\n' + (fail ? 'FAILURES: ' + fail : 'ALL GREEN'));
 process.exit(fail ? 1 : 0);
