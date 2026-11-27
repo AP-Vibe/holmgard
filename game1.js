@@ -6,6 +6,8 @@ var HMG = (function () {
   var VILLAGE_P = 55;
   var FLEET = 90;      // Jul 8: the June gathering's fleet finally clears Kiev \u2014 arrive later and you run the rapids alone (round-37 sign-off; day counts design-tuned)
   var SEACLOSE = 138;  // Aug 25: the summons stops coming at Cherson \u2014 the Black Sea closes to late hulls
+  var EBULGAR = 135;    // round 57, the east road: leave Bulgar by Aug 22 or the season dies at the market \u2014 the Volga market's own clock (day count design-tuned)
+  var EDELTA = 152;     // round 57: the Itil delta crossing holds until about Sep 8 \u2014 past it the fleet does not sail this year (design-tuned; Ibn Fadlan's own party ran the river road in winter, the merchant norm is the open season)
 
   function rand(s) {
     var a = (s.rngS = (s.rngS + 0x6d2b79f5) | 0);
@@ -96,12 +98,37 @@ var HMG = (function () {
     { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' },
     { id: 'parley', need: function (s) { return !s.flags.l3Parley; } }   // the horsemen come down once to the bank
   ];
+  // ===================== ROUND 57: THE EAST ROAD \u2014 the Volga venture's decks (per the signed Baghdad brief v1.1) =====================
+  var CORR3 = [   // the corridor: the Ilmen, the Msta and the Tvertsa to Timerevo \u2014 thin water, haul-overs, Merya banks
+    { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' }, { id: 'nets' }, { id: 'hearth' },
+    { id: 'merya', need: function (s) { return s.silver >= 2; } }
+  ];
+  var TRUNK3 = [   // the Volga trunk downstream to Bulgar: broad water, the khagan's shore watchers, big-river weather
+    { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' },
+    { id: 'watchers' }, { id: 'volgastorm' }
+  ];
+  var ITIL3 = [ { id: 'fair' }, { id: 'rain' }, { id: 'fog' }, { id: 'seam' } ];   // the last river stage: the Khazar shore to Itil
   var HIRES = ['Audun', 'Thorstein', 'Ragnvald', 'Sverting'];  // hub hire pool, paid from the settlement purse
   var HOLD = 12;  // hold units: 1 per fur bale, 2 per captive
 
   function drawMorning(s) {
     // leg three runs the southern water-road: round-1 placeholder decks per subleg (the real rosters land with build rounds 2-4)
     if (s.leg === 3) {
+      if (s.road === 'east') {   // round 57: the east road's own spine \u2014 thin-water gates by subleg, then the east pools
+        if (s.sub === 1) {
+          if (!s.flags.e1Msta && s.progress >= 30) { s.flags.e1Msta = true; return { id: 'msta' }; }
+          if (!s.flags.e1Haul && s.progress >= 70) { s.flags.e1Haul = true; return { id: 'hauler' }; }
+        }
+        if (s.sub === 2 && !s.flags.e2Kama && s.progress >= 55) { s.flags.e2Kama = true; return { id: 'kama' }; }
+        if (s.sub === 3 && !s.flags.e3Judge && s.progress >= 55) { s.flags.e3Judge = true; return { id: 'judge' }; }   // the arrival vignette at the merchants' half
+        var poolE = (s.sub === 2) ? TRUNK3 : (s.sub === 3) ? ITIL3 : CORR3;
+        var eligE = poolE.filter(function (e) { return (!e.need || e.need(s)) && s.lastEv.indexOf(e.id) < 0; });
+        if (!eligE.length) eligE = poolE;
+        var pickE = eligE[Math.floor(rand(s) * eligE.length)];
+        s.lastEv.push(pickE.id);
+        s.lastEv = s.lastEv.slice(-2);
+        return { id: pickE.id };
+      }
       if (s.sub === 1) {   // the Lovat shallows and the watershed portage are the subleg's spine, each once
         if (!s.flags.l3Lovat && s.progress >= 30) { s.flags.l3Lovat = true; return { id: 'lovat' }; }
         if (!s.flags.l3Port && s.progress >= 70) { s.flags.l3Port = true; return { id: 'portage3' }; }
@@ -208,9 +235,10 @@ var HMG = (function () {
     var allDead = s.crew.every(function (c) { return c.dead; });
     if (allDead) { s.phase = 'end'; s.result = ending(s, 'crewlost'); return; }
     if (s.leg <= 2 && s.day > WINTER) { s.phase = 'end'; s.result = ending(s, 'frozen'); return; }
+    if (s.leg === 3 && s.road === 'east' && s.day > EDELTA + 20) { s.phase = 'end'; s.result = endingE(s, 'Itil'); return; }   // round 57: the east road's own blanket \u2014 three weeks past the delta window, the crossing is gone for the year
     if (s.leg === 3 && s.day > 150) { s.phase = 'end'; s.result = ending(s, 'seaclose'); return; }
     if (s.progress >= 100) {
-      if (s.leg === 3) { arrive3(s); return; }
+      if (s.leg === 3) { if (s.road === 'east') arriveEast(s); else arrive3(s); return; }   // round 57: the east road lands at its own hubs
       s.phase = 'end';
       s.result = (s.leg === 2) ? ending2(s) : ending(s, 'arrived');
       return;
@@ -397,6 +425,59 @@ var HMG = (function () {
         if (i === 0) adj(s, { hull: 12, progress: 4 });
         else adj(s, { progress: 9, morale: 1 });
         break;
+      // ===================== ROUND 57: THE EAST ROAD \u2014 the Volga venture's outcomes (wounds per the round-56 curve) =====================
+      case 'msta':   // the Msta shallows: the corridor's soft gate \u2014 thin-flood mechanics on the east road
+        if (i === 0) adj(s, { progress: 6 });
+        else if (i === 1) {   // warp her over the bars \u2014 the lines tear hands when the hull scrapes
+          if (rand(s) < 0.55) adj(s, { hull: -12, progress: 14 });
+          else { adj(s, { hull: -22, progress: 14, wet: 1 }); wound(s, 1); }
+        } else {   // hire the Merya bank men
+          if (s.silver >= 3) { s.silver -= 3; adj(s, { progress: 12 }); } else adj(s, { progress: 5, morale: -1 });
+        }
+        break;
+      case 'hauler':   // the haul-over below the last rift: rollers / wheels / the keel gamble (mirrors the watershed portage)
+        if (i === 0) adj(s, { progress: 6, morale: -1 });
+        else if (i === 1) { if (s.silver >= 6) { s.silver -= 6; adj(s, { progress: 12 }); } else adj(s, { progress: 5, morale: -1 }); }
+        else {
+          if (rand(s) < 0.5) adj(s, { hull: -10, progress: 10 });
+          else { adj(s, { hull: -18, progress: 10, wet: 1 }); wound(s, 1); }   // the keel gambles \u2014 the crew's backs pay for the skids
+        }
+        break;
+      case 'merya':   // the Merya fish camp: fresh food cheap on the corridor
+        if (i === 0) { s.silver = Math.max(0, s.silver - 2); adj(s, { food: 20, morale: 1, progress: 4 }); }
+        else adj(s, { progress: 9 });
+        break;
+      case 'watchers':   // the Khazar shore: the 913 shadow lives as RUMOR ONLY (his D6 call) \u2014 tension, never combat
+        if (i === 0) adj(s, { morale: 1, progress: 5 });
+        else if (i === 1) { s.silver = Math.max(0, s.silver - 1); adj(s, { morale: 1, progress: 5 }); }
+        else adj(s, { progress: 7, morale: -1 });
+        break;
+      case 'volgastorm':   // weather on the trunk water: the coastal storm's numbers, the wound rule per round 56
+        if (i === 0) { adj(s, { hull: -10, progress: 8 }); wound(s, 1); }
+        else if (i === 1) { s.silver = Math.max(0, s.silver - 4); adj(s, { progress: 5 }); }
+        else { if (rand(s) < 0.5) adj(s, { progress: 15, morale: 1 }); else { adj(s, { hull: -25, wet: 1, morale: -2 }); wound(s, 1); } }
+        break;
+      case 'kama':   // the Kama junction: the last cheap provisions before the Khazar shore
+        if (i === 0) { s.silver = Math.max(0, s.silver - 2); adj(s, { food: 20, morale: 1, progress: 4 }); }
+        else adj(s, { progress: 12 });
+        break;
+      case 'judge':   // the pagan judge: the Rus have a recognized legal place (Run 15) \u2014 a fumbled court is a lethal EVENT, never a war (the parley rule, east edition)
+        if (i === 0) adj(s, { progress: 4, morale: 1 });
+        else if (i === 1) { s.silver = Math.max(0, s.silver - 2); adj(s, { progress: 6, morale: -1 }); }
+        else {
+          if (rand(s) < 0.45) {
+            var alive3j = s.crew.filter(function (c) { return !c.dead; });
+            if (alive3j.length > 1) { var victim3j = alive3j[Math.floor(rand(s) * alive3j.length)]; victim3j.hp = 0; victim3j.graveF = 0; }   // the guards' spears: he will not see the evening
+            adj(s, { morale: -2 });
+          } else adj(s, { morale: -2, progress: 7 });
+        }
+        break;
+      case 'deltaE':   // the one epilogue choice (per the brief): both roads end at the Baghdad scorecard
+        if (i === 0) adj(s, { progress: 4 });
+        else { if (rand(s) < 0.15) adj(s, { wet: 1, hull: -6 }); adj(s, { progress: 6 }); }
+        s.phase = 'end';
+        s.result = endingE(s, 'Baghdad');
+        return;   // the epilogue never falls through to endOfDay \u2014 the crossing is told, not played
     }
     endOfDay(s);
   }
@@ -486,6 +567,7 @@ var HMG = (function () {
   // ===================== LEG THREE: the road to Miklagard (round 38, build round 1) =====================
   // five hubs per the signed brief; s.sub = the subleg about to be sailed (Holmgard->Gnezdovo->Kiev->Cherson->Miklagard)
   var HUB3N = ['holmgard', 'gnezdovo', 'kiev', 'cherson'];   // HUB3N[s.sub-1] = the hub you cast off FROM
+  var HUB3E = ['holmgard', 'timerevo', 'bulgar', 'itil'];   // round 57: the east road's hubs \u2014 the hub you cast off FROM (Baghdad is the narrated epilogue, never a hub)
   function leg3Dest(sub) { return ['Gnezdovo', 'Kiev', 'Cherson', 'Miklagard'][(sub || 1) - 1]; }
 
   function begin3(s) {
@@ -508,7 +590,7 @@ var HMG = (function () {
       var nm3 = HIRES.filter(function (n) { return taken3.indexOf(n) < 0; })[0];
       if (nm3) { s.silver -= 5; s.crew.push({ name: nm3, role: 'oarsman', hp: 2, dead: false, graveF: 2 }); }
     }
-    else if (a === 'freight' && (s.hub === 'holmgard' || s.hub === 'gnezdovo') && holdUsed(s) + 1 <= HOLD) { s.freight = (s.freight || 0) + 1; }  // freight taken south pays at Kiev
+    else if (a === 'freight' && (s.hub === 'holmgard' || s.hub === 'gnezdovo') && s.road !== 'east' && holdUsed(s) + 1 <= HOLD) { s.freight = (s.freight || 0) + 1; }  // freight taken south pays at Kiev \u2014 the east road loads its own at Timerevo (round 57)
     else if (a === 'buyfur' && s.hub === 'holmgard' && s.silver >= 2 && holdUsed(s) + 1 <= HOLD) { s.silver -= 2; s.furs += 1; s.flags.hmgFur = (s.flags.hmgFur || 0) + 1; }   // round 53: goods bought here are marked - the factor never buys them back (his exploit fix)   // round 42: Holmgard trade \u2014 buy the southern venture's cargo
     else if (a === 'buycap' && s.hub === 'holmgard' && s.silver >= 4 && holdUsed(s) + 2 <= HOLD) { s.silver -= 4; s.captives += 1; s.flags.hmgCap = (s.flags.hmgCap || 0) + 1; }
     else if (a === 'sellfur' && s.hub === 'holmgard' && (s.furs - (s.flags.hmgFur || 0)) > 0) { var ff = s.furs - (s.flags.hmgFur || 0); s.silver += ff * 3; s.furs -= ff; }   // round 53: only furs NOT bought at Holmgard (his exploit fix)
@@ -530,7 +612,9 @@ var HMG = (function () {
       s.crew.forEach(function (c) { if (!c.dead && c.hp < 2) c.hp += 1; });   // round 56: wounds first \u2014 a day off the water sees to the hurt; death only if untreated
       s.crew.forEach(function (c) { if (!c.dead && c.hp === 0) c.graveF = 2; });
       upkeep(s);
-      if (s.day > 150) { s.phase = 'end'; s.result = ending(s, 'seaclose'); }
+      if (s.road === 'east') {
+        if (s.hub === 'itil' && s.day > EDELTA) { s.phase = 'end'; s.result = endingE(s, 'Itil'); }   // round 57: resting past the delta window at Itil \u2014 the crossing is gone
+      } else if (s.day > 150) { s.phase = 'end'; s.result = ending(s, 'seaclose'); }
     }
     else if (a === 'feast' && s.silver >= 2 && !s.flags.feasted) {
       s.silver -= 2;
@@ -549,6 +633,36 @@ var HMG = (function () {
       s.flags.l3Summ = false; s.flags.l3Esc = false; s.flags.l3Mes = false; s.flags.l3Aith = false;   // build round 4: the sea gates
       s.lastEv = [];
       s.pending = drawMorning(s);
+      s.phase = 'day';
+    }
+    // ---------- round 57: the east road's hub actions (the Volga venture) ----------
+    else if (a === 'eastroad' && s.hub === 'holmgard' && s.road !== 'east') { beginEast(s); }   // the fork: hear the east road at Holmgard
+    else if (a === 'backwest' && s.road === 'east' && s.hub === 'holmgard') { s.road = 'south'; }   // the fork hears the south road again \u2014 nothing lost but the day
+    else if (a === 'thoney' && s.hub === 'timerevo' && s.silver >= 2) { s.silver -= 2; s.food += 15; s.morale = Math.min(10, s.morale + 1); }   // the waypoint's honey and bread
+    else if (a === 'tfreight' && s.hub === 'timerevo' && holdUsed(s) + 1 <= HOLD) { s.freight = (s.freight || 0) + 1; s.flags.eFreight = (s.flags.eFreight || 0) + 1; }   // east freight: pays 2 a bale at Bulgar
+    else if (a === 'bbread' && s.hub === 'bulgar' && s.silver >= 2) { s.silver -= 2; s.food += 25; }   // the market's bread and dried fish
+    else if (a === 'bsellfur' && s.hub === 'bulgar' && s.furs > 0) { s.silver += s.furs * 4; s.furs = 0; upkeep(s); upkeep(s); }   // the slow sale: buyers come to the house over days \u2014 the days eat the season
+    else if (a === 'bsellcap' && s.hub === 'bulgar' && s.captives > 0) { var payc = s.captives * 6; var tenthc = Math.ceil(payc / 10); s.silver += payc - tenthc; s.captives = 0; s.flags.tenthPaid = (s.flags.tenthPaid || 0) + tenthc; upkeep(s); upkeep(s); upkeep(s); }   // the ruler's one-in-ten commuted as value (Ibn Fadlan's market law) \u2014 the sale eats three days
+    else if (a === 'ifish' && s.hub === 'itil' && s.silver >= 2) { s.silver -= 2; s.food += 30; }   // rice and dried fish (al-Istakhri's Itil)
+    else if (a === 'ibath' && s.hub === 'itil' && s.silver >= 2) { s.silver -= 2; s.morale = Math.min(10, s.morale + 2); }   // the city's baths
+    else if (a === 'castoffE' && s.road === 'east') {   // the east castoff never fires on the south road (round 57 guard)
+      s.progress = 0;
+      s.flags.rested = false;
+      s.flags.feasted = false;
+      s.flags.hubLift = false;
+      s.flags.e1Msta = false; s.flags.e1Haul = false;   // the corridor's gates belong to subleg 1 only
+      s.flags.e2Kama = false; s.flags.e3Judge = false;
+      s.lastEv = [];
+      if (s.hub === 'bulgar' && s.day > EBULGAR) { s.phase = 'end'; s.result = endingE(s, 'Bulgar'); return; }   // Gate B's hard edge: the season dies at the market
+      if (s.hub === 'itil') {
+        if (s.day > EDELTA) { s.phase = 'end'; s.result = endingE(s, 'Itil'); return; }   // Gate C: the fleet does not sail this year
+        var coinT = Math.floor(s.silver / 10); var baleT = Math.floor(s.furs / 10);   // Gate D: the khagan's tenth at the gulf \u2014 one coin in ten, a bale in ten, counted whole
+        if (coinT > 0) s.silver -= coinT;
+        if (baleT > 0) s.furs -= baleT;
+        s.pending = { id: 'deltaE' };   // the epilogue's one choice (per the brief)
+      } else {
+        s.pending = drawMorning(s);
+      }
       s.phase = 'day';
     }
   }
@@ -574,7 +688,7 @@ var HMG = (function () {
     var alive = s.crew.filter(function (c) { return !c.dead; });
     var deaths = s.crew.length - alive.length;
     var base = {
-      how: how, dest: (s.leg === 3 ? leg3Dest(s.sub) : 'Aldeigjuborg'), date: dateStr(s.day), days: s.day,
+      how: how, dest: (s.leg === 3 ? (s.road === 'east' ? ((s.sub <= 2) ? 'Bulgar' : 'Itil') : leg3Dest(s.sub)) : 'Aldeigjuborg'), date: dateStr(s.day), days: s.day,   // round 57: east fails tag the stage's landing
       crew: s.crew.map(function (c) { return { name: c.name, dead: !!c.dead }; }),
       deaths: deaths, wet: s.wet, silver: s.silver, morale: s.morale
     };
@@ -658,6 +772,66 @@ var HMG = (function () {
     return base;
   }
 
+  // ===================== ROUND 57: THE EAST ROAD \u2014 the engine (per the signed Baghdad brief v1.1) =====================
+  // one season, the playable road ends at Itil, Baghdad is a narrated epilogue + scorecard; captives sell at Bulgar and nowhere past it
+  function beginEast(s) {
+    s.road = 'east';
+    s.greek = 0;
+    s.leg = 3; s.sub = 1; s.hub = 'holmgard'; s.progress = 0;
+    s.lastEv = []; s.pending = null;
+    s.flags.rested = false; s.flags.feasted = false;
+    s.flags.eFreight = 0; s.flags.freightPaidE = 0;
+    s.scoreSaved = false;   // the east road is one scoring run, anchoring at Baghdad or the lesser tags
+    s.morale = Math.min(10, s.morale + 1); s.flags.hubLift = 1;   // the fork itself lifts the crew \u2014 the far road chosen is its own omen
+    s.phase = 'hub3';
+  }
+
+  function arriveEast(s) {
+    var done = s.sub;
+    if (done === 2 && s.flags.eFreight) {   // Timerevo freight settles at Bulgar (the brief: freight ON at the waypoint)
+      s.silver += s.flags.eFreight * 2; s.flags.freightPaidE = s.flags.eFreight;
+      s.freight = Math.max(0, (s.freight || 0) - s.flags.eFreight); s.flags.eFreight = 0;
+    }
+    s.sub = done + 1;
+    s.hub = HUB3E[s.sub - 1];
+    s.morale = Math.min(10, s.morale + 1); s.flags.hubLift = 1;   // round 42 rule: the landing lifts the crew
+    s.pending = null;
+    s.phase = 'hub3';
+  }
+
+  function endingE(s, dest) {   // the east road's three ends, all one season: Baghdad (the narrated epilogue), Itil terms, Bulgar terms
+    var aliveE = s.crew.filter(function (c) { return !c.dead; });
+    var deathsE = s.crew.length - aliveE.length;
+    var base = {
+      how: 'arrived', dest: dest, date: dateStr(s.day), days: s.day,
+      crew: s.crew.map(function (c) { return { name: c.name, dead: !!c.dead }; }),
+      deaths: deathsE, wet: s.wet, silver: s.silver, morale: s.morale, marks: 0
+    };
+    if (dest === 'Baghdad') {
+      base.marks = s.furs * 8;   // the Abbasid premium: 8 a bale against Miklagard's 5 \u2014 design-tuned (no prices attested anywhere, Run 13/15 lock)
+      if (s.flags.freightPaidE) base.textExtra = ' The merchants\u2019 ' + s.flags.freightPaidE + ' freight bale' + (s.flags.freightPaidE === 1 ? '' : 's') + ' settled at Bulgar \u2014 ' + (s.flags.freightPaidE * 2) + ' dirham' + (s.flags.freightPaidE * 2 === 1 ? '' : 's') + ' to the purse.';
+      if (s.captives > 0) base.textExtra += ' The chain ends at Bulgar \u2014 the captive' + (s.captives === 1 ? ' walks' : 's walk') + ' free under the khagan\u2019s peace, and no market on this water pays for them.';
+      var dins = Math.round((base.marks * 100 + aliveE.length * 50 + s.silver * 20) / 10);   // dinar flavor: the money-changers\u2019 ten-for-one (design-tuned, the era\u2019s convention)
+      if (deathsE === 0 && s.wet === 0) { base.tier = 'full4'; base.title = 'The City of Peace takes it all'; }
+      else { base.tier = 'baghdad'; base.title = 'Baghdad, at the middle of the world'; }
+      base.text = 'The morning ebb carries you out of the reeds, and the water turns salt by the second day. The Khazar sea is no empty water \u2014 keels and round-hulled merchant craft work the crossing the whole season, and the high southern shore walks past day after day until the iron gates and the customs towns of the dry country. Camels take the bales at the landing; the caravan keeps the pace of its guards, and an interpreter who speaks the river tongues walks with you for his share. Then the City of Peace: markets beyond counting, the weighers of the Abbasid custom house, silver by weight and by count \u2014 near ' + dins + ' dinars by the money-changers\u2019 ten-for-one, and every coin of it earned on water you could drink when you started. You do not know \u2014 no one on this water knows \u2014 that within two summers a Rus fleet will come down this same road asking the khagan\u2019s leave, and raid the shore it now trades with; or that thirty-two years from now the like will winter in a taken city\u2019s citadel far up the Kura and die at its boats. The road you made is a merchant\u2019s road. It will be a raider\u2019s, soon enough.';
+    } else if (dest === 'Itil') {
+      var fursI = s.furs * 3;   // the Khazar factor\u2019s river price \u2014 design-tuned; the gulf crossing forfeited
+      s.silver += fursI; base.silver = s.silver; s.furs = 0;
+      base.tier = 'itil'; base.title = 'The fleet does not sail this year';
+      base.text = 'The delta men shake their heads at the sky: the crossing is done for the season, and the keels that meant to sail have sailed. A factor of the merchants\u2019 half takes the bales at the river price \u2014 three a bale, the forfeit of a late road \u2014 and the felt city settles around your venture for the season that is left.' + ((s.captives > 0) ? ' The captives walk free under the khagan\u2019s peace; no market here deals in them, whatever the geographers guess.' : '') + ' Baghdad keeps its dinars this year.';
+    } else {   // Bulgar: the season dies at the market \u2014 a lesser ending, not a fail (per the brief)
+      var fursB = s.furs * 4;
+      var payB = s.captives * 6;
+      var tenthB = Math.ceil(payB / 10);   // the ruler\u2019s one-in-ten, commuted as value \u2014 Ibn Fadlan\u2019s market law
+      s.silver += fursB + payB - tenthB; base.silver = s.silver; s.furs = 0; s.captives = 0;
+      base.tier = 'bulgar'; base.title = 'The season dies at the market';
+      base.text = 'The buyers came to the house over days, and the days ate the season \u2014 the last southbound keels have gone down the great water without you, and the river men shrug: it happens to someone every year. The sales all settle \u2014 furs by weight, the head-count less the ruler\u2019s tenth \u2014 and the purse is honest, but it is a Bulgar purse, and Baghdad keeps its dinars this year.';
+    }
+    if (base.textExtra) base.text += base.textExtra;
+    return base;
+  }
+
   var TEXTS = {
     storm: { title: 'The sky goes green-black', text: 'The storm stands off the skerries like a wall. Ketil looks at the clouds, then at you.', opts: ['Race ahead of it with a small sail (fast, but the ship takes damage)', 'Stop and let it pass (safe, but a whole day lost)', 'Sail between the rocks to slip past it (huge speed, or disaster)'] },
     calm: { title: 'Dead calm', text: 'The tar sweats in the seams. The crew sits at the oars and waits on your word.', opts: ['Row all day (good speed, the crew suffers)', 'Rest and wait for wind (slow and easy)'] },
@@ -695,7 +869,16 @@ var HMG = (function () {
     escort: { title: 'The dromons come out', text: 'Out of the haze, two imperial dromons \u2014 high sterns, bronze pipes glittering at the bows. The treaty letter is plain: the Rus sail under the emperor\u2019s eye from Cherson to the Horn, or answer for themselves alone.', opts: ['Fall in with the escort (steady sailing, spirits rise)', 'Sail apart from the convoy (faster \u2014 and alone with the sea)'] },
     cstorm: { title: 'A Black Sea storm', text: 'The horizon bruises and the wind comes off the steppe-water like a shoulder. Coasting here you are never far from a lee shore, and never far from deep water either. The hands look at the sky, then at you. And every coast here keeps the old law: a keel in trouble may hire the shore men to haul and mend, at the agreed wage and not a coin above.', opts: ['Hold out to sea and take it (the ship suffers, the day is kept)', 'Put in at a fisher haven and ride it out (4 dirhams of ground tackle)', 'Run the coast before it (fast \u2014 if the timing holds)'] },
     mesembria: { title: 'The Mesembria landfall', text: 'A Greek harbour town under its headland, tile roofs and church bells, fishermen hawking the day\u2019s catch. The last soft water and cheap bread before the capital; the last honest tar, too.', opts: ['Lay over half a day \u2014 water, bread, tar and pitch (2 dirhams, hull and larder mend)', 'Stand off and on, straight for the Horn (good speed)'] },
-    statherios: { title: 'St Aitherios on the cape', text: 'A staging shrine on the last cape, keels moored two and three deep, riggers splicing for anyone with coin \u2014 or without. Past here it is one day\u2019s open water, then the Walls: the Horn and the city beyond counting.', opts: ['Re-rig the spare and patch every seam (the hull answers)', 'Hold course with what you have \u2014 the crew can taste the Horn (good speed, spirits rise)'] }
+    statherios: { title: 'St Aitherios on the cape', text: 'A staging shrine on the last cape, keels moored two and three deep, riggers splicing for anyone with coin \u2014 or without. Past here it is one day\u2019s open water, then the Walls: the Horn and the city beyond counting.', opts: ['Re-rig the spare and patch every seam (the hull answers)', 'Hold course with what you have \u2014 the crew can taste the Horn (good speed, spirits rise)'] },
+    // ===================== ROUND 57: THE EAST ROAD \u2014 the Volga venture's events (texture from the Run-12/15 digests; numbers mirror the southern road, prices design-tuned) =====================
+    msta: { title: 'The Msta runs thin', text: 'South of the lake the river braids over her early-summer bones \u2014 gravel bars standing yellow midstream, the current stacking against the shallows. The Merya keep the banks here: fish weirs, dugouts, smoke off the camps. Their men know every stone in the channel \u2014 and their price is honest, or not.', opts: ['Wait out the morning for the channel to ease (safe, a slow watch)', 'Warp her over the bars with lines and shoulders (fast, the hull may open and backs may give)', 'Hire the Merya bank men to haul her through (3 dirhams, over by dusk)'] },
+    hauler: { title: 'The haul-over below the last rift', text: 'The channel fails altogether below the last rift \u2014 a stage of dry ground where the rivers forget each other, and the boats go over it here or do not go at all. Rollers cut on site and the whole crew\u2019s backs is the free road; the other road is the resident teamsters\u2019 wheels, asking honest money. The fleet waits its turn by lot \u2014 the river law casts the dice for whose keel hauls first.', opts: ['Build rollers on site and sweat her over (free, hard days)', 'Hire the teamsters with their wheels (6 dirhams, over by dusk)', 'Grease skids and gamble the keel on the first riffle (fast, the hull may open)'] },
+    merya: { title: 'A Merya fish camp', text: 'Smoke and scales on the wind \u2014 a camp of the Merya above their weirs, the day\u2019s catch drying on the racks. They trade fish to the passing keels at prices their grandfathers also charged; there is no haggling a people out of their own river.', opts: ['Buy the racks\u2019 smoked catch (2 dirhams, fresh food, spirits rise)', 'Hold off the weirs and push on (good speed)'] },
+    watchers: { title: 'Watchers on the Khazar shore', text: 'Riders on the east bank, unhurried, matching the boat for a mile \u2014 the khagan\u2019s eyes on the river road. They have watched keels pass under tribute and peace their whole lives; the Volga is their river, and the toll is taken quietly. The bank news travels with them: keels gathering at the gulf, they say, asking the khagan\u2019s leave for the southern water. The riders smile when they say it.', opts: ['Show the trade sign and hold course (the river law holds, spirits rise)', 'Hail them and trade a dirham for news (the road\u2019s gossip, worth its coin)', 'Keep to mid-river and say nothing (safe, the crew watches the bank all day)'] },
+    volgastorm: { title: 'Weather on the trunk water', text: 'The trunk river stands up grey under a wind with a hundred miles of fetch behind it \u2014 broad water, no sea room to speak of, the shore low either side. The hands look at the sky, then at you.', opts: ['Hold out mid-river and take it (the ship suffers, the day is kept)', 'Put in at a fisher camp on the bank (4 dirhams of ground tackle)', 'Run the tail of it downstream (fast \u2014 if the timing holds)'] },
+    kama: { title: 'The Kama comes in', text: 'The trunk river doubles at the junction \u2014 the Kama\u2019s brown flood sliding in from the timber country, a market on the point, keels trading grain and fish under the khagan\u2019s peace. Downstream the water is a highroad again; here is a last chance to fill the pots cheap.', opts: ['Put in at the junction camp (2 dirhams, fresh food, spirits rise)', 'Run past the junction and hold the channel (good speed)'] },
+    judge: { title: 'A dispute at the merchants\u2019 half', text: 'The last bend of the river, and the felt roofs of Itil across the water \u2014 a Khazar factor at the tie-up swears one of your bales is his, before a ring of merchants from four nations. The city keeps seven judges, one for each confession that rides this water, and one of them speaks for the Rus and the pagans, with a seat the court itself recognizes. The khagan\u2019s court is on the steppe this season; the merchants\u2019 half keeps its scales. The law can be asked, or paid, or cursed \u2014 and cursing a court is never free.', opts: ['Take it to the Rus judge, oath and witnesses (a day at the court \u2014 the law knows the Rus)', 'Settle with silver and be gone (2 dirhams, no one satisfied)', 'Curse the court and walk (the guards have spears, and short patience)'] },
+    deltaE: { title: 'The delta at first light', text: 'The river forgets her banks and braids across a plain of reed islands \u2014 the khagan\u2019s toll men at the gulf crossing, counting. Beyond the reeds the water turns salt: the Khazar sea, then the iron gates and the dry country, then the camel road to the city of the Commander of the Faithful. The convoy men say the channels read best at the morning ebb. The convoy men are not here.', opts: ['Wait for the morning ebb and thread it in the light (a day spent, the safe channel)', 'Thread the channels now with the lead-line (fast \u2014 the stakes and the reeds)'] }
   };
 
   function currentEvent(s) {
@@ -714,7 +897,8 @@ var HMG = (function () {
     newRun: newRun, applyChoice: applyChoice, marketAct: marketAct,
     hubAct: hubAct, enterHub: enterHub, holdUsed: holdUsed, ending2: ending2,
     begin3: begin3, hub3Act: hub3Act, arrive3: arrive3, ending3: ending3, leg3Dest: leg3Dest, drawMorning: drawMorning, wound: wound,
-    HUB3N: HUB3N, FLEET: FLEET, SEACLOSE: SEACLOSE,
+    HUB3N: HUB3N, HUB3E: HUB3E, FLEET: FLEET, SEACLOSE: SEACLOSE, EBULGAR: EBULGAR, EDELTA: EDELTA,
+    beginEast: beginEast, endingE: endingE,   // round 57: the east road
     currentEvent: currentEvent, dateStr: dateStr, moraleLabel: moraleLabel,
     begin: function (s) { s.pending = drawMorning(s); s.phase = 'day'; },
     begin3: begin3, hub3Act: hub3Act, arrive3: arrive3, ending3: ending3,
@@ -831,7 +1015,7 @@ function sharedHtml() {
     (window.sbMsg ? '<p class="mut" style="font-size:13px;margin:6px 0">' + window.sbMsg + '</p>' : '');
   var rows = window.sbRows;
   if (!rows) return h + '</details>';
-  var hubs = [['Miklagard', 'Miklagard \u2014 the Golden Horn'], ['Cherson', 'Cherson'], ['Kiev', 'K\u00e6nugar\u00f0r'], ['Gnezdovo', 'Smaleskja'], ['Holmgard', 'Holmgard'], ['Aldeigjuborg', 'Aldeigjuborg']];
+  var hubs = [['Baghdad', 'Baghdad \u2014 the City of Peace'], ['Itil', 'Itil \u2014 the khagan\u2019s city'], ['Bulgar', 'Bulgar \u2014 the Volga market'], ['Miklagard', 'Miklagard \u2014 the Golden Horn'], ['Cherson', 'Cherson'], ['Kiev', 'K\u00e6nugar\u00f0r'], ['Gnezdovo', 'Smaleskja'], ['Holmgard', 'Holmgard'], ['Aldeigjuborg', 'Aldeigjuborg']];   // round 57: the east landings top the ladder \u2014 a Baghdad finish outranks Miklagard at equal marks (his D7)
   hubs.forEach(function (hb) {
     var sub = rows.filter(function (e) { return e.g === hb[0]; }).slice(0, 20);
     if (!sub.length) return;
@@ -864,6 +1048,7 @@ function viewHelp() {
     '<div><span>The landing \u2014 between the legs</span>At Aldeigjuborg the cloth is scored and paid out. The hub screen follows: hire hands from the beach, load furs (2 dirhams, 1 hold unit) or a captive (4 dirhams, 2 hold units), or take a merchant\u2019s freight bale (free, 1 hold unit, pays 2 dirhams at Holmgard \u2014 good silver when the purse runs thin, but it crowds out furs), then cast off up the river. The hold fits 12 units.</div>' +
     '<div><span>Captives \u2014 hold and pot</span>A captive is cargo that eats: one ration a day, counted in the day\u2019s mouths. If the pot runs dry, the crew eats first, the captives go hungry, and the crew hears them (spirits drop). At the rapids, walking them round means one may bolt for the woods.</div>' +
     '<div><span>The southern road \u2014 the third leg</span>From Holmgard the water-road runs to Miklagard: the Lovat and the portage to Smaleskja, down the Dnieper to K\u00e6nugar\u00f0r, the rapids road to Cherson, then the Greek sea. Near 90 days \u2014 the June fleet clears K\u00e6nugar\u00f0r early in July and the sea closes at Cherson in late August. Freight taken at Holmgard or Smaleskja pays at K\u00e6nugar\u00f0r; everything else scores at Miklagard. At Holmgard you can also sell leftover furs or captives to a factor (quick prices, into the purse), or buy fresh cargo for the southern venture. At K\u00e6nugar\u00f0r the gathering\'s merchants pay quick silver too \u2014 3 dirhams a bale for furs, 5 a head for captives \u2014 before the rapids road takes its toll. The rapids road below K\u00e6nugar\u00f0r: warp through on lines, run under oar, or walk the cargo round \u2014 Nenasytets is the big one, and a captive on the chain-line may bolt. The southern water takes blood before it takes lives: warping through on lines and failed gambles hurt the men \u2014 hurt men still row, but a downed man dies only untended, so rest at a landing mends the hurt, and every hub keeps a wisewoman (2 dirhams) who heals. The Pecheneg summer is at peace, but a fumbled parley can cost a man; the cock sacrifice at the great island is worth its coin. The Greek sea: the summons seals at Cherson decide who sails, the treaty dromons escort what they can see \u2014 Mesembria has the last cheap bread, St Aitherios the last re-rig, and then the Horn. At Cherson the Greek market is open: a bale of wine, oil or silk costs 3 dirhams and 1 unit of hold \u2014 the factor pays 6 a bale at Miklagard, so spare hold and spare silver should become goods.</div>' +
+    '<div><span>The east road \u2014 the Volga venture</span>From Holmgard a second road runs east: the Msta corridor to Timerevo, the Volga trunk downstream to Bulgar, then the Khazar shore to Itil \u2014 the playable road ends there, and Baghdad beyond is narrated: the delta choice, the salt water, the caravan, the City of Peace. The payday is Bulgar \u2014 furs 4 dirhams a bale, captives 6 a head less the ruler\u2019s tenth, and both sales eat days off the season; leave Bulgar by about Aug 22 or the season dies at the market, and captives sell nowhere past it. Freight loads at Timerevo and pays at Bulgar. At Itil the khagan\u2019s tenth is taken at the gulf crossing \u2014 one coin in ten, a bale in ten, counted whole \u2014 and the delta holds to about Sep 8: past it the fleet does not sail this year, and the venture scores at Itil terms. Baghdad scores the venture like every leg: furs 8 dirhams a bale, the Abbasid premium, design-tuned. All east prices are design-tuned; the texture is Ibn Fadlan\u2019s embassy and the geographers\u2019 Volga (runs 12 and 15 on file), and the ninth-century raid road stays outside the window as rumor and irony only.</div>' +
     '<div><span>The convoy window \u2014 day 32 (May 11)</span>The thaw clears Ladoga and the early southbound convoys leave the landing. Arrive after day 32 and the buyer pays half; drag past day 44 and the K\u00e6nugar\u00f0r road closes for good.</div>' +
     '<div><span>Place-names \u2014 the saga forms</span>The southern road keeps the Old Norse names the saga writers used: Smaleskja for the Dnieper waystation and K\u00e6nugar\u00f0r for the river gathering; the skippers\u2019 board files them under its own spellings.</div>' +
     '<div><span>Names \u2014 chips under the bar</span>Your crew. Each is a person who lives or dies by your choices, and each death costs 10 dirhams of the settlement and slows the boat.</div>' +
